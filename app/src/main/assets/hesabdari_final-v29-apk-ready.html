@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامه تراکنش‌های مالی - پشتیبان‌گیری و خروجی اکسل</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --accent: #059669;
+            --danger: #dc2626;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+            direction: rtl;
+        }
+
+        /* Header */
+        .header-container {
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            background: #0f172a; color: white; padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
+            display: flex; align-items: stretch; justify-content: space-between; gap: 8px; min-height: 68px;
+        }
+
+        .header-right-group { display:flex; align-items:center; gap:7px; flex:1; min-width:0; }
+        .settings-btn {
+            position:absolute;
+            top:5px;
+            right:6px;
+            width:34px;
+            height:34px;
+            flex:0 0 34px;
+            border:1px solid rgba(255,255,255,.18);
+            background:rgba(255,255,255,.10);
+            color:#fff;
+            border-radius:8px;
+            font-size:1.35rem;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            line-height:1;
+        }
+        .settings-btn:hover { background:rgba(255,255,255,.18); }
+
+        .header-title-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 3px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-title {
+            font-size: 1.02rem;
+            font-weight: bold;
+            padding-right: 40px;
+        }
+
+        .header-diff {
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .header-count {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            font-weight: 800;
+        }
+
+        .header-count .stat-val {
+            font-size: 0.95rem;
+        }
+
+        .stats-badge-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 3px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            min-width: 125px;
+        }
+
+        .stat-val { font-weight: bold; color: #38bdf8; }
+        .stats-badge-group .stat-val { font-size: 0.92rem; }
+        .stats-badge-group > div { font-size: 0.78rem; }
+
+        .stat-val.amount-rec {
+            color: #34d399;
+        }
+
+        .stat-val.amount-pay {
+            color: #f87171;
+        }
+
+        .stat-val.amount-diff {
+            color: #fbbf24;
+        }
+
+        /* Backup & Export Bar */
+        .backup-bar-container { display:none !important; }
+
+        .btn-backup {
+            flex: 1;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+
+        .btn-backup.json-export { background: #0284c7; }
+        .btn-backup.json-import { background: #4f46e5; }
+        .btn-backup.excel-export { background: #059669; }
+
+        .btn-backup:hover {
+            opacity: 0.9;
+        }
+
+        /* Search & Action Bar */
+        .action-bar-container {
+            position: sticky;
+            top: 74px;
+            z-index: 1150;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+            background: var(--bg);
+            padding: 2px 0 4px;
+        }
+
+        .top-action-buttons {
+            display: flex;
+            direction: rtl;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .search-toggle-btn,
+        .btn-add-full {
+            flex: 1;
+            width: auto;
+            min-height: 40px;
+            padding: 7px 8px;
+            border-radius: 6px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-toggle-btn {
+            background: #475569;
+            color: #fff;
+            border: 1px solid #64748b;
+        }
+
+        .search-panel {
+            display: none;
+            background: var(--card-bg);
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            gap: 6px;
+            align-items: center;
+        }
+
+        .search-panel.is-active {
+            display: flex;
+        }
+
+        .search-input-box {
+            flex: 1;
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            outline: none;
+            background: #fff;
+            width: 50%;
+        }
+
+        /* دکمه اصلی افزودن */
+        .btn-add-full {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        /* زیرمجموعه دکمه‌های پرداختی و دریافتی */
+        .add-type-subgroup {
+            display: none;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .add-type-subgroup.is-active {
+            display: flex;
+        }
+
+        .btn-type-pay {
+            flex: 1;
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 7px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-type-rec {
+            flex: 1;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 7px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Cards List */
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .open-card {
+            background: var(--card-bg);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .open-card.is-open {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header-toggle {
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            background: #ffffff;
+            gap: 6px;
+            font-size: 0.78rem;
+            min-height: 32px;
+        }
+
+        .card-header-toggle:hover {
+            background: #f8fafc;
+        }
+
+        .header-main-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .badge-row-num {
+            background: #eff6ff;
+            color: var(--primary);
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid #bfdbfe;
+            white-space: nowrap;
+        }
+
+        .card-date-badge {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .recipient-name {
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .header-left-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .amount-display {
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .amount-display.amount-rec { color: var(--accent); }
+        .amount-display.amount-pay { color: var(--danger); }
+
+        .toggle-icon {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+            background: #f1f5f9;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .open-card.is-open .toggle-icon {
+            transform: rotate(180deg);
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .card-expand-body {
+            display: none;
+            padding: 8px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            font-size: 0.78rem;
+        }
+
+        .open-card.is-open .card-expand-body {
+            display: block;
+        }
+
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .detail-value {
+            color: var(--text-main);
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        /* Sub-cards / Accordion Row */
+        .subcards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+
+        .subcards-buttons-row {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .subcard-tab-btn {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 5px 2px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            color: #64748b;
+            user-select: none;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .subcard-tab-btn.has-data {
+            background: #eff6ff;
+            color: #1e40af;
+            font-weight: 800;
+            border-color: #3b82f6;
+            font-size: 0.78rem;
+        }
+
+        .subcard-tab-btn.is-active {
+            border-bottom: 3px solid #1e40af;
+            background: #dbeafe;
+            color: #1e40af;
+            font-weight: 900;
+        }
+
+        .subcard-full-panel {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(30, 64, 175, 0.08);
+            margin-top: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .subcard-item-wrapper {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .subcard-item-content {
+            flex: 1;
+        }
+
+        .attachment-chip {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: 1px solid #bae6fd;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            word-break: break-all;
+        }
+
+        .text-note-chip {
+            background: #fef3c7;
+            color: #78350f;
+            padding: 6px 8px;
+            border-radius: 5px;
+            border: 1px solid #fde68a;
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .card-actions-row {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .actions-sub-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 3px;
+            margin-top: 1px;
+            animation: fadeIn 0.15s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-action-card {
+            padding: 0;
+            width: 28px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.72rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-actions-row > .btn-action-card {
+            width: auto;
+            height: 22px;
+            padding: 2px 6px;
+        }
+
+        .btn-action-card.edit-btn { color: var(--primary); border-color: #bfdbfe; background: #eff6ff; }
+        .btn-action-card.delete-btn { color: var(--danger); border-color: #fca5a5; background: #fef2f2; }
+
+
+        /* Settings menu */
+        .settings-menu { display:none; position:fixed; top:74px; right:8px; z-index:1400; width:min(300px,calc(100vw - 16px)); background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 30px rgba(15,23,42,.22); padding:8px; }
+        .settings-menu.is-open { display:block; }
+        .settings-menu-title { font-size:.82rem; font-weight:900; color:var(--text-main); padding:5px 7px 8px; border-bottom:1px solid #e2e8f0; margin-bottom:5px; }
+        .settings-menu-btn { width:100%; border:1px solid #e2e8f0; background:#f8fafc; color:#1e293b; border-radius:7px; padding:9px 10px; margin:3px 0; text-align:right; font-size:.78rem; font-weight:800; cursor:pointer; }
+        .settings-menu-btn:hover { background:#eff6ff; border-color:#bfdbfe; }
+        .security-note { font-size:.68rem; color:var(--text-muted); line-height:1.6; background:#f8fafc; padding:6px 8px; border-radius:6px; margin-top:5px; }
+        .security-actions { display:flex; gap:5px; margin-top:7px; }
+        .security-actions button { flex:1; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 8px;
+            max-width: 440px;
+            width: 100%;
+            padding: 10px;
+            box-shadow: var(--shadow-md);
+            max-height: 92vh;
+            overflow-y: auto;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        /* Themes for Modals */
+        .modal-box.theme-payment {
+            border: 2px solid var(--danger);
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.25);
+        }
+        .modal-box.theme-payment .modal-header {
+            background: #fef2f2;
+            color: var(--danger);
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+        .modal-box.theme-payment #fieldAmount,
+        .modal-box.theme-payment #amountWordsText,
+        .modal-box.theme-payment #chkAmount,
+        .modal-box.theme-payment #chkAmountWordsInline {
+            color: var(--danger) !important;
+        }
+        .modal-box.theme-payment #fieldAmount::placeholder,
+        .modal-box.theme-payment #chkAmount::placeholder {
+            color: #f87171;
+        }
+
+        .modal-box.theme-receipt {
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 15px rgba(5, 150, 105, 0.25);
+        }
+        .modal-box.theme-receipt .modal-header {
+            background: #ecfdf5;
+            color: var(--accent);
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+        .modal-box.theme-receipt #fieldAmount,
+        .modal-box.theme-receipt #amountWordsText,
+        .modal-box.theme-receipt #chkAmount,
+        .modal-box.theme-receipt #chkAmountWordsInline {
+            color: var(--accent) !important;
+        }
+        .modal-box.theme-receipt #fieldAmount::placeholder,
+        .modal-box.theme-receipt #chkAmount::placeholder {
+            color: #34d399;
+        }
+
+        .modal-header {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+        }
+
+        .form-row-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 4px;
+            background: #fafafa;
+            padding: 4px 6px;
+            border-radius: 5px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .form-row-inline label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+            min-width: 65px;
+        }
+
+        .form-row-inline .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .form-row-inline input[type="text"], 
+        .form-row-inline select {
+            padding: 4px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            outline: none;
+            flex: 1;
+            width: 100%;
+            height: 28px;
+        }
+
+        .btn-inline-action {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-weight: bold;
+            font-size: 0.72rem;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 28px;
+        }
+
+        .split-btn-group {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .btn-split-add {
+            flex: 1;
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            color: #0284c7;
+            border-radius: 4px;
+            padding: 3px 2px;
+            font-weight: bold;
+            font-size: 0.68rem;
+            cursor: pointer;
+            white-space: nowrap;
+            text-align: center;
+            height: 28px;
+        }
+
+        .btn-split-edit {
+            flex: 1;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #b45309;
+            border-radius: 4px;
+            padding: 3px 2px;
+            font-weight: bold;
+            font-size: 0.68rem;
+            cursor: pointer;
+            white-space: nowrap;
+            text-align: center;
+            height: 28px;
+        }
+
+        .btn-split-edit.is-active {
+            background: #f59e0b;
+            color: #ffffff;
+            border-color: #d97706;
+        }
+
+        .attached-summary-box {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 6px;
+            padding: 6px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+
+        .attached-summary-box.is-open {
+            display: flex;
+        }
+
+        .file-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.70rem;
+            gap: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .file-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+        }
+
+        .file-item-btn {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.62rem;
+            line-height: 1.2;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+        .file-item-btn.edit { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
+        .file-item-btn.remove { color: #dc2626; background: #fef2f2; border-color: #fca5a5; }
+
+        .modal-actions-btn {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .btn-modal {
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-cancel { background: #e2e8f0; color: #334155; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-delete-confirm { background: var(--danger); color: white; }
+
+        .picker-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .picker-option-btn {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .picker-option-btn:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: var(--primary);
+        }
+
+        .text-input-area-box {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .text-input-area-box textarea {
+            width: 100%;
+            height: 70px;
+            padding: 6px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            font-size: 0.78rem;
+            outline: none;
+            resize: vertical;
+        }
+
+        .check-form-box {
+            display: none;
+            flex-direction: column;
+            gap: 1px;
+            margin-top: 6px;
+            background: #f8fafc;
+            padding: 4px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .check-form-box .form-row-inline {
+            margin-bottom: 0px;
+            padding: 2px 4px;
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            background: transparent;
+        }
+
+        .check-form-box .form-row-inline:last-of-type {
+            border-bottom: none;
+        }
+
+        .check-amount-row-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .check-amount-input {
+            width: 45% !important;
+            flex: none !important;
+            font-weight: bold;
+        }
+
+        .inline-words-preview {
+            width: 55%;
+            font-size: 0.68rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 2px;
+        }
+
+        /* Calendar Modal UI */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        .calendar-day-head {
+            font-size: 0.68rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            padding: 2px 0;
+        }
+
+        .calendar-day-btn {
+            padding: 4px 0;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .calendar-day-btn:hover {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .calendar-day-btn.is-today {
+            background: #1e40af;
+            color: #ffffff;
+            font-weight: bold;
+            border-color: #1e40af;
+        }
+
+        .calendar-header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+    </style>
+
+<style id="final-ui-fixes-v8">
+.settings-btn { width:30px !important; height:30px !important; font-size:1.05rem !important; padding:0 !important; }
+.settings-menu { z-index:1400 !important; top:74px !important; max-height:calc(100vh - 84px) !important; overflow-y:auto !important; }
+.header-diff, .header-diff .diff-label { font-weight:800; }
+.header-count, .header-count .count-label { font-weight:800; color:#f59e0b !important; }
+.header-count .count-value { color:#f59e0b !important; font-size:1.05rem !important; }
+.received-label, .received-value { color:#34d399 !important; }
+.paid-label, .paid-value { color:#f87171 !important; }
+.diff-positive, .diff-positive .diff-label { color:#34d399 !important; }
+.diff-negative, .diff-negative .diff-label { color:#f87171 !important; }
+.diff-zero, .diff-zero .diff-label { color:#94a3b8 !important; }
+</style>
+
+
+
+
+<style id="difference-color-v12">
+/* تفاضل: عدد و عنوان دقیقاً یک رنگ */
+.header-diff.diff-negative .diff-label,
+.header-diff.diff-negative .amount-diff {
+    color: #f87171 !important;
+}
+
+.header-diff.diff-positive .diff-label,
+.header-diff.diff-positive .amount-diff {
+    color: #34d399 !important;
+}
+
+.header-diff.diff-zero .diff-label,
+.header-diff.diff-zero .amount-diff {
+    color: #34d399 !important;
+}
+</style>
+
+
+
+
+<style id="flow-arrows-v14">
+/* فلش‌های دریافتی/پرداختی بدون وابستگی به فونت Emoji */
+.stats-badge-group > div {
+    min-width: 160px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+}
+
+.stats-badge-group .flow-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 18px !important;
+    width: 18px !important;
+    height: 22px !important;
+    line-height: 22px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+}
+
+.stats-badge-group .flow-rec::before {
+    content: "↓" !important;
+    color: #34d399 !important;
+}
+
+.stats-badge-group .flow-pay::before {
+    content: "↑" !important;
+    color: #f87171 !important;
+}
+
+.stats-badge-group .received-label,
+.stats-badge-group .paid-label {
+    font-weight: 700 !important;
+}
+
+.stats-badge-group .received-value,
+.stats-badge-group .paid-value {
+    margin-right: auto !important;
+}
+</style>
+
+
+<style id="reopen-safe-v15">
+html, body {
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: none;
+}
+</style>
+
+
+<style id="transaction-subbuttons-v16">
+/* زیرمجموعه ثبت تراکنش دقیقاً هم‌عرض خود دکمه ثبت تراکنش است */
+.add-type-subgroup {
+    width: calc(50% - 3px) !important;
+    margin-right: 0 !important;
+    margin-left: auto !important;
+    display: none;
+    direction: rtl;
+    gap: 6px;
+    box-sizing: border-box;
+}
+
+.add-type-subgroup.is-active {
+    display: flex !important;
+}
+
+.add-type-subgroup .btn-type-pay,
+.add-type-subgroup .btn-type-rec {
+    flex: 1 1 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    min-height: 40px !important;
+    padding: 7px 8px !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    font-size: 0.84rem !important;
+    font-weight: 800 !important;
+}
+
+/* فلش‌ها همان سبک فلش‌های نوار مشکی، بدون وابستگی به Emoji */
+.add-type-subgroup .subtype-arrow {
+    display: inline-flex !important;
+    width: 18px !important;
+    height: 22px !important;
+    flex: 0 0 18px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    line-height: 22px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.add-type-subgroup .subtype-pay-arrow::before {
+    content: "↑" !important;
+    color: #ffffff !important;
+}
+
+.add-type-subgroup .subtype-rec-arrow::before {
+    content: "↓" !important;
+    color: #ffffff !important;
+}
+</style>
+
+
+<style id="final-html-updates-v20">
+.exit-menu-btn{color:#dc2626!important;border-color:#fecaca!important;background:#fff7f7!important;}
+.modal-overlay{z-index:5000!important;}
+.settings-menu{z-index:10000!important;}
+.header-container,.action-bar-container{overflow:visible!important;}
+</style>
+
+<style id="final-ui-fixes-v21">
+/* دکمه‌های ویرایش/حذف دقیقاً هم‌عرض دکمه ویرایش اصلی */
+.actions-sub-group{width:100%!important;display:flex!important;gap:4px!important;box-sizing:border-box!important;}
+.actions-sub-group .btn-action-card{flex:1 1 0!important;width:0!important;min-width:0!important;height:28px!important;box-sizing:border-box!important;}
+.card-actions-row{width:100%!important;}
+.card-actions-row>.edit-btn{width:100%!important;box-sizing:border-box!important;}
+/* فایل پشتیبان به شکل زیرمنو */
+.backup-submenu{display:none;padding:0 0 2px 0;}
+.backup-submenu.is-active{display:block;}
+.backup-sub-btn{margin:2px 0 2px 0!important;width:94%!important;margin-right:auto!important;background:#eef2f7!important;font-size:.74rem!important;}
+.backup-menu-arrow{float:left;font-size:.65rem;transition:transform .15s;}
+.backup-menu-toggle.is-active .backup-menu-arrow{transform:rotate(180deg);}
+</style>
+
+
+<style id="final-fixes-v25">
+.recipient-search-list{display:none!important;width:100%!important;max-height:180px!important;overflow:auto!important;margin:5px 0 0!important;background:#fff!important;border:1px solid #cbd5e1!important;border-radius:6px!important}
+.recipient-search-list.is-active{display:block!important}
+.recipient-option{display:block!important;width:100%!important;padding:7px 8px!important;border:0!important;border-bottom:1px solid #e5e7eb!important;background:#fff!important;text-align:right!important;cursor:pointer!important}
+.backup-submenu{display:none}.backup-submenu.is-active{display:block}
+.backup-menu-toggle.is-active .backup-menu-arrow,.export-menu-toggle.is-active .backup-menu-arrow{transform:rotate(180deg)}
+.received-recipient-row{display:flex!important}
+</style>
+<style id="v27-final-fix">
+.recipient-row,.received-recipient-row{display:flex!important;}
+.modal-overlay{z-index:10000!important;}
+</style>
+
+<style id="search-dropdown-final">
+/* جستجو دقیقاً زیر دکمه جستجو، هم‌عرض خودِ دکمه جستجو، در همه‌جای برنامه */
+.search-btn-wrapper{position:relative;flex:1;display:flex;}
+.search-btn-wrapper .search-toggle-btn{flex:1;width:100%;}
+.search-dropdown{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    right:0;
+    width:100%;
+    box-sizing:border-box;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:6px;
+    box-shadow:var(--shadow-md);
+    z-index:3000;
+}
+.search-dropdown.is-active{display:block;}
+.search-dropdown-row{display:flex;direction:rtl;gap:6px;width:100%;align-items:stretch;}
+.search-dropdown .search-text-only{flex:1 1 0;width:auto;height:38px;min-width:0;box-sizing:border-box;background:#fff;color:#111827;caret-color:#111827;border:1px solid #cbd5e1;border-radius:6px;outline:none;padding:6px 8px;font-size:.84rem;}
+.search-dropdown .recipient-search-button{flex:0 0 42%;width:42%;height:38px;box-sizing:border-box;background:#9ca3af;color:#fff;border:1px solid #6b7280;border-radius:6px;padding:6px 9px;font-size:.84rem;font-weight:800;text-align:center;cursor:pointer;}
+</style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="header-right-group">
+            <button type="button" class="settings-btn" aria-label="تنظیمات" title="تنظیمات" onclick="toggleSettingsMenu(event)">☰</button>
+            <div class="header-title-block">
+                <div class="header-title">حسابداری</div>
+                <div class="header-diff"><span class="diff-label">تفاضل:</span> <span class="stat-val amount-diff" id="statDiffAmount">۰ تومان</span></div>
+                <div class="header-count"><span class="count-label">تعداد:</span> <span class="stat-val count-value" id="statCount">۰</span></div>
+            </div>
+        </div>
+        <div class="stats-badge-group">
+            <div><span class="flow-icon flow-rec" aria-hidden="true"></span><span class="received-label">دریافتی:</span> <span class="stat-val amount-rec received-value" id="statRecAmount">۰ تومان</span></div>
+            <div><span class="flow-icon flow-pay" aria-hidden="true"></span><span class="paid-label">پرداختی:</span> <span class="stat-val amount-pay paid-value" id="statPayAmount">۰ تومان</span></div>
+        </div>
+    </div>
+
+    <div class="settings-menu" id="settingsMenu" onclick="event.stopPropagation()">
+        <div class="settings-menu-title">⚙️ تنظیمات و ابزارها</div>
+        <button type="button" class="settings-menu-btn" onclick="openSecuritySettings()">🔐 رمز عبور / اثر انگشت</button>
+        <button type="button" class="settings-menu-btn backup-menu-toggle" onclick="toggleBackupMenu(event)">📁 فایل پشتیبان <span class="backup-menu-arrow">▼</span></button>
+        <div class="backup-submenu" id="backupSubMenu">
+            <button type="button" class="settings-menu-btn backup-sub-btn" onclick="openBackupOptions()">💾 پشتیبان‌گیری</button>
+            <button type="button" class="settings-menu-btn backup-sub-btn" onclick="triggerImportJson(); closeSettingsMenu()">♻️ بازیابی پشتیبان</button>
+        </div>
+        <button type="button" class="settings-menu-btn export-menu-toggle" onclick="toggleExportMenu(event)">📤 خروجی گرفتن <span class="backup-menu-arrow">▼</span></button>
+        <div class="backup-submenu" id="exportSubMenu">
+            <button type="button" class="settings-menu-btn backup-sub-btn" onclick="exportToCsv(); closeSettingsMenu()">📊 خروجی اکسل (.xlsx)</button>
+            <button type="button" class="settings-menu-btn backup-sub-btn" onclick="exportToPdf(); closeSettingsMenu()">📄 خروجی PDF</button>
+        </div>
+        <button type="button" class="settings-menu-btn exit-menu-btn" onclick="requestExit()">🚪 خروج</button>
+    </div>
+
+    <input type="file" id="inputImportJson" accept=".json" style="display:none;" onchange="handleImportJson(this)">
+
+    <div class="modal-overlay" id="backupOptionsModal">
+        <div class="modal-box" style="max-width:360px;">
+            <div class="modal-header"><span>💾 انتخاب محل پشتیبان</span><button type="button" onclick="closeModal('backupOptionsModal')" style="border:none;background:none;cursor:pointer;font-size:.9rem;">✕</button></div>
+            <div style="font-size:.75rem;color:#64748b;line-height:1.6;margin-bottom:8px;">محل ذخیره پشتیبان را انتخاب کنید:</div>
+            <div class="picker-grid">
+                <button type="button" class="picker-option-btn" onclick="backupToDevice()"><span style="font-size:1.1rem;">📱</span><span>حافظه گوشی / فایل</span></button>
+                <button type="button" class="picker-option-btn" onclick="backupToCloud()"><span style="font-size:1.1rem;">☁️</span><span>فضای ابری / اشتراک‌گذاری</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar-container">
+        <div class="top-action-buttons">
+            <button class="btn-add-full" onclick="toggleAddTypeButtons()">➕ ثبت تراکنش</button>
+            <div class="search-btn-wrapper">
+                <button class="search-toggle-btn" onclick="toggleSearchPanel()">🔍 جستجوی تراکنش</button>
+                <div class="search-dropdown" id="searchModal">
+                    <div class="search-dropdown-row">
+                        <input type="text" id="textSearchInput" class="search-text-only" placeholder="" autocomplete="off" spellcheck="false" aria-label="جستجوی تراکنش">
+                        <button type="button" id="recipientSearchButton" class="recipient-search-button" onclick="toggleRecipientSearchList(event)">اسامی</button>
+                    </div>
+                    <div id="recipientSearchList" class="recipient-search-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-type-subgroup" id="addTypeSubGroup">
+            <button type="button" class="btn-type-pay" onclick="openAddModal('پرداختی')"><span class="subtype-arrow subtype-pay-arrow" aria-hidden="true"></span><span>پرداختی</span></button>
+            <button type="button" class="btn-type-rec" onclick="openAddModal('دریافتی')"><span class="subtype-arrow subtype-rec-arrow" aria-hidden="true"></span><span>دریافتی</span></button>
+        </div>
+    </div>
+
+    <div class="cards-list" id="cardsContainer"></div>
+
+    <!-- SECURITY MODALS -->
+    <div class="modal-overlay" id="securityModal">
+        <div class="modal-box" style="max-width:360px;">
+            <div class="modal-header"><span>🔐 امنیت برنامه</span><button type="button" onclick="closeModal('securityModal')" style="border:none;background:none;cursor:pointer;font-size:.9rem;">✕</button></div>
+            <div class="form-row-inline"><label>رمز عددی:</label><div class="controls-group"><input type="password" id="securityPin" inputmode="numeric" maxlength="8" placeholder="۴ تا ۸ رقم"></div></div>
+            <div class="security-actions"><button type="button" class="btn-modal btn-save" onclick="saveSecurityPin()">ذخیره رمز</button><button type="button" class="btn-modal btn-cancel" onclick="removeSecurityPin()">حذف رمز</button></div>
+            <button type="button" class="settings-menu-btn" style="margin-top:8px;" onclick="enableBiometric()">👆 فعال‌سازی اثر انگشت</button>
+            <div class="security-note">در نسخه HTML، رمز عددی قابل استفاده است. اثر انگشت هنگام تبدیل به اپ اندروید به قابلیت امنیتی خود گوشی متصل می‌شود.</div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="lockModal">
+        <div class="modal-box" style="max-width:320px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:900;margin-bottom:8px;">🔒 برنامه قفل است</div>
+            <div style="font-size:.72rem;color:#64748b;margin-bottom:8px;">رمز عددی را وارد کنید</div>
+            <input type="password" id="unlockPin" inputmode="numeric" maxlength="8" style="width:100%;height:36px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;text-align:center;font-size:1rem;letter-spacing:4px;">
+            <button type="button" class="btn-modal btn-save" style="width:100%;margin-top:8px;" onclick="unlockApp()">🔓 ورود</button>
+            <button type="button" class="settings-menu-btn" onclick="tryBiometricUnlock()">👆 ورود با اثر انگشت</button>
+            <div id="unlockError" style="display:none;color:#dc2626;font-size:.7rem;margin-top:5px;">رمز واردشده صحیح نیست.</div>
+        </div>
+    </div>
+
+    <!-- FORM MODAL (ثبت / ویرایش اصلی) -->
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="formTitleText">➕ ثبت تراکنش جدید</span>
+                <button type="button" onclick="closeModal('formModal')" style="border:none;background:none;cursor:pointer;font-size:0.9rem;">✕</button>
+            </div>
+            <form id="transactionForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="editId">
+                
+                <div class="form-row-inline">
+                    <label>تاریخ:</label>
+                    <div class="controls-group">
+                        <button type="button" class="btn-inline-action" style="flex:1;" onclick="openCalendarModal('main_date')">📅 تقویم</button>
+                        <input type="text" id="fieldDateRaw" required style="flex:1;" oninput="formatAndValidateDateInput(this)" placeholder="مثال: ۱۴۰۵۰۵۱۶">
+                    </div>
+                </div>
+
+                <div class="form-row-inline received-recipient-row" id="recipientFormRow">
+                    <label>نام اسامی:</label>
+                    <div class="controls-group">
+                        <select id="fieldRecipientSelect" class="btn-inline-action" style="flex: 1;" onchange="selectExistingRecipient(this.value)">
+                            <option value="">اسامی کنونی</option>
+                        </select>
+                        <input type="text" id="fieldRecipient" list="recipientDatalist" required style="flex: 1;" placeholder="تایپ نام اسامی...">
+                        <datalist id="recipientDatalist"></datalist>
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>مبلغ (تومان):</label>
+                    <div class="controls-group">
+                        <div class="check-amount-row-container">
+                            <input type="text" id="fieldAmount" class="check-amount-input" required placeholder="مبلغ به تومان" oninput="handleAmountInput(this, 'amountWordsText')">
+                            <div class="inline-words-preview" id="amountWordsText" title=""></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>توضیحات:</label>
+                    <div class="controls-group">
+                        <input type="text" id="fieldDesc" placeholder="توضیحات سطر">
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>پیوست:</label>
+                    <div class="controls-group">
+                        <div class="split-btn-group">
+                            <button type="button" class="btn-split-add" onclick="openUnifiedPicker('attachment')">➕ افزودن سند جدید</button>
+                            <button type="button" id="btnToggleList_attachment" class="btn-split-edit" onclick="toggleSubcardListInForm('attachment')">✏️ ویرایش سند قدیم</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="attached-summary-box" id="attachmentsBox_attachment"></div>
+
+                <div class="form-row-inline">
+                    <label>پرداخت نقد:</label>
+                    <div class="controls-group">
+                        <div class="split-btn-group">
+                            <button type="button" class="btn-split-add" onclick="openUnifiedPicker('cash')">➕ افزودن سند جدید</button>
+                            <button type="button" id="btnToggleList_cash" class="btn-split-edit" onclick="toggleSubcardListInForm('cash')">✏️ ویرایش سند قدیم</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="attached-summary-box" id="attachmentsBox_cash"></div>
+
+                <div class="form-row-inline">
+                    <label>پرداخت چک:</label>
+                    <div class="controls-group">
+                        <div class="split-btn-group">
+                            <button type="button" class="btn-split-add" onclick="openUnifiedPicker('check')">➕ افزودن سند جدید</button>
+                            <button type="button" id="btnToggleList_check" class="btn-split-edit" onclick="toggleSubcardListInForm('check')">✏️ ویرایش سند قدیم</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="attached-summary-box" id="attachmentsBox_check"></div>
+
+                <div class="modal-actions-btn">
+                    <button type="button" class="btn-modal btn-cancel" onclick="closeModal('formModal')">انصراف</button>
+                    <button type="submit" class="btn-modal btn-save">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- UNIFIED PICKER MODAL -->
+    <div class="modal-overlay" id="unifiedPickerModal">
+        <div class="modal-box" style="max-width: 380px;">
+            <div class="modal-header">
+                <span id="pickerTitleText">📎 افزودن سند</span>
+                <button type="button" onclick="closeModal('unifiedPickerModal')" style="border:none;background:none;cursor:pointer;">✕</button>
+            </div>
+
+            <div class="picker-grid" id="pickerGridOptions">
+                <button type="button" class="picker-option-btn" onclick="triggerPicker('storage')">
+                    <span style="font-size:1.1rem;">📁</span>
+                    <span>حافظه گوشی</span>
+                </button>
+                <button type="button" class="picker-option-btn" onclick="showTextInputBox('text')">
+                    <span style="font-size:1.1rem;">📝</span>
+                    <span>ورود متنی</span>
+                </button>
+                <button type="button" id="btnCheckInfoOption" class="picker-option-btn" style="grid-column: span 2; background: #eff6ff; border-color: #bfdbfe;" onclick="showCheckFormBox()">
+                    <span style="font-size:1.2rem;">🧾</span>
+                    <span style="color: #1e40af;">اطلاعات چک</span>
+                </button>
+                <button type="button" id="btnFinishPicker" class="picker-option-btn" style="grid-column: span 2; background: #ecfdf5; border-color: #a7f3d0;" onclick="closeModal('unifiedPickerModal')">
+                    <span style="font-size:1.2rem;">✅</span>
+                    <span style="color: #065f46;">ذخیره و بستن</span>
+                </button>
+            </div>
+
+            <div class="text-input-area-box" id="textInputAreaBox">
+                <textarea id="pickerTextInput" placeholder="متن یا اطلاعات را وارد کنید..."></textarea>
+                <button type="button" class="btn-modal btn-save" style="width: 100%; margin-top: 4px;" onclick="saveTextAttachment()">ذخیره اطلاعات</button>
+            </div>
+
+            <div class="check-form-box" id="checkFormBox">
+                <div class="form-row-inline">
+                    <label>تاریخ چک:</label>
+                    <div class="controls-group">
+                        <button type="button" class="btn-inline-action" onclick="openCalendarModal('check_date')">📅</button>
+                        <input type="text" id="chkDate" placeholder="مثال: ۱۴۰۵۰۵۱۶" oninput="formatAndValidateDateInput(this)">
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>مبلغ چک:</label>
+                    <div class="controls-group">
+                        <div class="check-amount-row-container">
+                            <input type="text" id="chkAmount" class="check-amount-input" placeholder="مبلغ (تومان)" oninput="handleCheckAmountInput(this)">
+                            <div class="inline-words-preview" id="chkAmountWordsInline" title=""></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>دهنده چک:</label>
+                    <div class="controls-group">
+                        <input type="text" id="chkIssuer" placeholder="نام دهنده چک">
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>صاحب حساب:</label>
+                    <div class="controls-group">
+                        <input type="text" id="chkOwner" placeholder="نام صاحب حساب">
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>شماره صیادی:</label>
+                    <div class="controls-group">
+                        <input type="text" id="chkSayadi" placeholder="شماره ۱۶ رقمی صیادی" oninput="this.value=toPersianDigits(toEnglishDigits(this.value).replace(/\D/g,''))">
+                    </div>
+                </div>
+
+                <div class="form-row-inline">
+                    <label>بانک/شعبه:</label>
+                    <div class="controls-group">
+                        <input type="text" id="chkBank" placeholder="نام بانک.نام شعبه (تایپ نقطه = اسلش)" oninput="handleBankBranchDotAutoSlash(this)">
+                    </div>
+                </div>
+
+                <button type="button" class="btn-modal btn-save" style="width: 100%; margin-top: 6px;" onclick="saveStructuredCheckInfo()">ذخیره اطلاعات چک</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="inputStorage" accept="*/*" style="display: none;" onchange="handleFilePicked(this, 'file')">
+
+    <!-- CALENDAR MODAL -->
+    <div class="modal-overlay" id="calendarModal">
+        <div class="modal-box" style="max-width: 320px;">
+            <div class="modal-header">
+                <span>📅 انتخاب تاریخ شمسی</span>
+                <button type="button" onclick="closeModal('calendarModal')" style="border:none;background:none;cursor:pointer;">✕</button>
+            </div>
+            <div class="calendar-header-nav">
+                <button type="button" class="btn-modal btn-cancel" style="padding: 2px 6px;" onclick="changeCalMonth(-1)">◀</button>
+                <span id="calMonthYearTitle" style="font-weight: bold; font-size: 0.82rem;"></span>
+                <button type="button" class="btn-modal btn-cancel" style="padding: 2px 6px;" onclick="changeCalMonth(1)">▶</button>
+            </div>
+            <div class="calendar-grid">
+                <div class="calendar-day-head">ش</div>
+                <div class="calendar-day-head">ی</div>
+                <div class="calendar-day-head">د</div>
+                <div class="calendar-day-head">س</div>
+                <div class="calendar-day-head">چ</div>
+                <div class="calendar-day-head">پ</div>
+                <div class="calendar-day-head">ج</div>
+            </div>
+            <div class="calendar-grid" id="calendarDaysGrid"></div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-box" style="max-width: 340px;">
+            <div class="modal-header" style="color: var(--danger);">
+                <span id="deleteModalTitle">⚠️ استعلام حذف</span>
+            </div>
+            <p id="deleteModalBody" style="font-size: 0.82rem; color: #334155; line-height: 1.4; margin-bottom: 10px; text-align: center;">
+                آیا از حذف این مورد اطمینان دارید؟
+            </p>
+            <div class="modal-actions-btn">
+                <button type="button" class="btn-modal btn-cancel" onclick="closeModal('deleteConfirmModal')">انصراف</button>
+                <button type="button" class="btn-modal btn-delete-confirm" onclick="executeDelete()">بله، حذف شود</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let defaultData = [
+            {
+                id: 1, row: 1, dateRaw: "14050516", recipient: "علی رضایی", desc: "خرید لوازم یدکی ماشین", amount: 500000000, type: "پرداختی",
+                attachments: {
+                    attachment: [{ type: 'file', name: "Screenshot_۲۰۲۶۰۸۰۴.jpg", url: "#" }],
+                    cash: [{ type: 'text', text: "پرداخت ۵۰ میلیون تومان بیعانه نقدی" }],
+                    check: []
+                }
+            },
+            {
+                id: 2, row: 2, dateRaw: "14050515", recipient: "محمد احمدی", desc: "تسویه حساب مابقی", amount: 25000000, type: "دریافتی",
+                attachments: { attachment: [], cash: [], check: [{ type: 'text', text: "تاریخ چک: ۱۴۰۵/۰۶/۱۵\nمبلغ چک: ۲۵,۰۰۰,۰۰۰ تومان (بیست و پنج میلیون تومان)\nدهنده چک: محمد احمدی\nصاحب حساب: شرکت تجارت\nشماره صیادی: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶\nبانک/شعبه: بانک ملی / شعبه مرکزی" }] }
+            },
+            {
+                id: 3, row: 3, dateRaw: "14050514", recipient: "علی رضایی", desc: "تسویه نهایی", amount: 150000000, type: "پرداختی",
+                attachments: { attachment: [], cash: [], check: [] }
+            }
+        ];
+
+        function normalizeTransactions(data) {
+            if (!Array.isArray(data)) return [];
+            return data.map((item, index) => {
+                const id = Number.isFinite(Number(item?.id)) ? Number(item.id) : index + 1;
+                const row = Number.isFinite(Number(item?.row)) ? Number(item.row) : index + 1;
+                const attachments = item?.attachments && typeof item.attachments === 'object' ? item.attachments : {};
+                return {
+                    id,
+                    row,
+                    dateRaw: item?.dateRaw == null ? '' : String(item.dateRaw),
+                    recipient: item?.recipient == null ? '' : String(item.recipient),
+                    desc: item?.desc == null ? '' : String(item.desc),
+                    amount: Math.max(0, Number(item?.amount) || 0),
+                    type: item?.type === 'دریافتی' ? 'دریافتی' : 'پرداختی',
+                    attachments: {
+                        attachment: Array.isArray(attachments.attachment) ? attachments.attachment : [],
+                        cash: Array.isArray(attachments.cash) ? attachments.cash : [],
+                        check: Array.isArray(attachments.check) ? attachments.check : []
+                    }
+                };
+            });
+        }
+
+        function loadTransactions() {
+            try {
+                const raw = localStorage.getItem('fin_transactions_v11');
+                if (!raw) return normalizeTransactions(defaultData);
+                return normalizeTransactions(JSON.parse(raw));
+            } catch (err) {
+                console.warn('خواندن اطلاعات ذخیره‌شده ناموفق بود:', err);
+                return normalizeTransactions(defaultData);
+            }
+        }
+
+        let transactions = loadTransactions();
+        let openCardIds = new Set();
+        let activeSubcardsMap = {};
+        let activeActionsMap = {};
+        let currentModalType = 'پرداختی';
+        
+        let openFormSubcardLists = { attachment: false, cash: false, check: false };
+
+        let deleteType = 'transaction';
+        let selectedTargetId = null;
+        let selectedSubcardCat = null;
+        let selectedSubcardIndex = null;
+
+        let tempFormDocs = { attachment: [], cash: [], check: [] };
+        let activeCategory = 'attachment';
+        let editingSubcardIndex = null;
+        let pickerBaseTitle = '📎 افزودن سند';
+
+        let activeCalendarTarget = 'main_date';
+        let currentCalYear = 1405;
+        let currentCalMonth = 5;
+        let todayShamsiObj = null;
+
+        const shamsiMonths = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+        // ذخیره‌سازی مقاوم: IndexedDB برای داده کامل + localStorage برای پشتیبان سریع و اضطراری
+        const FIN_DB_NAME = 'hesabdari_finance_v2';
+        const FIN_DB_STORE = 'app_state';
+        let finDbPromise = null;
+        let lastSavedAt = 0;
+        let persistenceRequested = false;
+
+        // Android/WebView و Chrome: درخواست فضای پایدار برای جلوگیری از پاک شدن خودکار داده‌ها.
+        async function requestPersistentStorage(){
+            if(persistenceRequested) return;
+            persistenceRequested = true;
+            try{
+                if(navigator.storage && navigator.storage.persist){
+                    await navigator.storage.persist();
+                }
+            }catch(e){ console.warn('Persistent storage unavailable:', e); }
+        }
+
+        function openFinanceDB() {
+            if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB unavailable'));
+            requestPersistentStorage();
+            if (finDbPromise) return finDbPromise;
+            finDbPromise = new Promise((resolve, reject) => {
+                const req = indexedDB.open(FIN_DB_NAME, 1);
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains(FIN_DB_STORE)) db.createObjectStore(FIN_DB_STORE, { keyPath: 'key' });
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error || new Error('IndexedDB open failed'));
+            });
+            return finDbPromise;
+        }
+
+        function saveToIndexedDB(data, savedAt) {
+            return openFinanceDB().then(db => new Promise((resolve, reject) => {
+                const tx = db.transaction(FIN_DB_STORE, 'readwrite');
+                tx.objectStore(FIN_DB_STORE).put({ key: 'current', savedAt, transactions: data });
+                tx.oncomplete = resolve;
+                tx.onerror = () => reject(tx.error || new Error('IndexedDB write failed'));
+                tx.onabort = () => reject(tx.error || new Error('IndexedDB write aborted'));
+            }));
+        }
+
+        function compactForEmergencyStorage(data) {
+            // اگر localStorage به سقف رسید، فقط فایل‌های حجیم را از نسخه اضطراری حذف می‌کنیم؛
+            // نسخه کامل همچنان در IndexedDB نگهداری می‌شود.
+            return data.map(t => ({
+                ...t,
+                attachments: Object.fromEntries(Object.entries(t.attachments || {}).map(([cat, items]) => [
+                    cat,
+                    (Array.isArray(items) ? items : []).map(item => {
+                        if (item && item.type === 'file' && typeof item.url === 'string' && item.url.length > 2000) {
+                            return { type: 'file', name: item.name || 'فایل پیوست', url: '' };
+                        }
+                        return item;
+                    })
+                ]))
+            }));
+        }
+
+        function saveData(silent = false) {
+            const snapshot = normalizeTransactions(transactions);
+            const savedAt = Date.now();
+            lastSavedAt = savedAt;
+            let emergencySaved = false;
+
+            // پشتیبان سریع و همزمان؛ در خاموشی ناگهانی آخرین اطلاعات فرم و تراکنش‌ها حفظ می‌شود.
+            try {
+                // نسخه اضطراری کم‌حجم همیشه اول نوشته می‌شود تا حتی در توقف ناگهانی WebView
+                // آخرین وضعیت قابل بازیابی باشد.
+                localStorage.setItem('fin_transactions_v11_meta', String(savedAt));
+                try {
+                    localStorage.setItem('fin_transactions_v11', JSON.stringify(snapshot));
+                    localStorage.removeItem('fin_transactions_v11_compact');
+                } catch (quotaErr) {
+                    localStorage.removeItem('fin_transactions_v11');
+                    localStorage.setItem('fin_transactions_v11_compact', JSON.stringify(compactForEmergencyStorage(snapshot)));
+                }
+                emergencySaved = true;
+            } catch (err) {
+                console.warn('پشتیبان سریع localStorage در دسترس نبود:', err);
+            }
+
+            // ذخیره کامل و بدون محدودیت کوچک localStorage در IndexedDB.
+            saveToIndexedDB(snapshot, savedAt).catch(err => {
+                console.warn('ذخیره کامل IndexedDB ناموفق بود:', err);
+                if (!silent && !emergencySaved) {
+                    console.warn('ذخیره‌سازی اضطراری نیز در دسترس نبود.');
+                }
+            });
+            return emergencySaved || !!('indexedDB' in window);
+        }
+
+        async function restoreFullDataFromIndexedDB() {
+            try {
+                const db = await openFinanceDB();
+                const state = await new Promise((resolve, reject) => {
+                    const tx = db.transaction(FIN_DB_STORE, 'readonly');
+                    const req = tx.objectStore(FIN_DB_STORE).get('current');
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => reject(req.error);
+                });
+                if (!state || !Array.isArray(state.transactions)) {
+                    // مهاجرت یک‌باره اطلاعات قدیمی localStorage به IndexedDB
+                    await saveToIndexedDB(normalizeTransactions(transactions), Number(localStorage.getItem('fin_transactions_v11_meta')) || Date.now());
+                    return false;
+                }
+                const localStamp = Number(localStorage.getItem('fin_transactions_v11_meta')) || 0;
+                if (Number(state.savedAt || 0) >= localStamp) {
+                    transactions = normalizeTransactions(state.transactions);
+                    populateRecipientDropdowns();
+                    applyFilters();
+                    return true;
+                }
+                // localStorage جدیدتر است؛ آن را به IndexedDB منتقل می‌کنیم.
+                await saveToIndexedDB(normalizeTransactions(transactions), localStamp || Date.now());
+            } catch (err) {
+                console.warn('بازیابی IndexedDB ناموفق بود؛ از پشتیبان اضطراری استفاده می‌شود:', err);
+            }
+            return false;
+        }
+
+
+        function exportToJson() {
+            if (!transactions || transactions.length === 0) {
+                alert('هیچ تراکنشی برای پشتیبان‌گیری وجود ندارد.');
+                return;
+            }
+            const blob = new Blob([JSON.stringify(transactions, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+            downloadAnchor.href = url;
+            downloadAnchor.download = `financial_backup_${dateStr}.json`;
+            downloadAnchor.style.display = 'none';
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function triggerImportJson() {
+            document.getElementById('inputImportJson').click();
+        }
+
+        function handleImportJson(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) {
+                            if (confirm('آیا از جایگزینی اطلاعات موجود با فایل پشتیبان اطمینان دارید؟')) {
+                                transactions = normalizeTransactions(importedData);
+                                if (!saveData()) return;
+                                populateRecipientDropdowns();
+                                applyFilters();
+                                alert('اطلاعات با موفقیت بازیابی شد.');
+                            }
+                        } else {
+                            alert('فرمت فایل پشتیبان نامعتبر است.');
+                        }
+                    } catch (err) {
+                        alert('خطا در خواندن فایل پشتیبان: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+                input.value = '';
+            }
+        }
+
+        function openBackupOptions(){ closeSettingsMenu(); document.getElementById('backupOptionsModal').style.display='flex'; }
+        function makeBackupBlob(){ return new Blob([JSON.stringify(transactions,null,2)],{type:'application/json;charset=utf-8'}); }
+        async function backupToDevice(){
+            saveData();
+            const blob=makeBackupBlob();
+            const filename=`financial_backup_${new Date().toISOString().slice(0,10)}.json`;
+            closeModal('backupOptionsModal');
+            try{
+                const base64 = await blobToBase64(blob);
+                if(window.Android && typeof window.Android.saveBase64File === 'function'){
+                    window.Android.saveBase64File(filename,'application/json',base64);
+                    return;
+                }
+                if(window.Android && typeof window.Android.saveTextFile === 'function'){
+                    window.Android.saveTextFile(filename,JSON.stringify(transactions,null,2));
+                    return;
+                }
+            }catch(err){ console.warn('Android backup bridge failed:',err); }
+            try{
+                if(window.showSaveFilePicker){
+                    const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:'پشتیبان حسابداری',accept:{'application/json':['.json']}}]});
+                    const writable=await handle.createWritable(); await writable.write(blob); await writable.close();
+                    alert('پشتیبان با موفقیت در محل انتخاب‌شده ذخیره شد.'); return;
+                }
+            }catch(err){ if(err && err.name==='AbortError') return; console.warn(err); }
+            const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+        }
+
+        function blobToBase64(blob){
+            return new Promise((resolve,reject)=>{
+                const r=new FileReader();
+                r.onload=()=>resolve(String(r.result||'').split(',')[1]||'');
+                r.onerror=()=>reject(r.error||new Error('FileReader failed'));
+                r.readAsDataURL(blob);
+            });
+        }
+        async function backupToCloud(){
+            saveData();
+            const blob=makeBackupBlob();
+            const file=new File([blob],`financial_backup_${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
+            closeModal('backupOptionsModal');
+            try{
+                if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+                    await navigator.share({title:'پشتیبان حسابداری',text:'فایل پشتیبان حسابداری',files:[file]});
+                    return;
+                }
+            }catch(err){ if(err && err.name==='AbortError') return; }
+            alert('اشتراک‌گذاری فایل در این مرورگر در دسترس نیست. در نسخه APK امکان انتخاب مستقیم فضای ابری اضافه می‌شود.');
+        }
+        function requestExit(){
+            closeSettingsMenu();
+            if(!confirm('آیا مطمئن هستید می‌خواهید از برنامه خارج شوید؟\nاطلاعات ابتدا ذخیره می‌شوند.')) return;
+            if(!saveData()) return;
+            try{ window.close(); }catch(e){}
+            setTimeout(()=>alert('اطلاعات ذخیره شد. این نسخه HTML توسط Chrome اجازه بستن خودکار پنجره را نمی‌دهد؛ برای خروج از دکمه برگشت گوشی استفاده کنید.'),150);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function safeAttachmentHref(url) {
+            const value = String(url || '');
+            if (/^(data:|blob:|https?:|mailto:)/i.test(value)) return value;
+            return '#';
+        }
+
+        // ساخت فایل واقعی XLSX بدون وابستگی خارجی؛ مناسب Chrome و Android WebView
+        function xlsxXmlEscape(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        function crc32(bytes) {
+            let crc = 0xFFFFFFFF;
+            for (let i = 0; i < bytes.length; i++) {
+                crc ^= bytes[i];
+                for (let j = 0; j < 8; j++) {
+                    crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+                }
+            }
+            return (crc ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        function writeU16LE(arr, offset, value) {
+            arr[offset] = value & 255;
+            arr[offset + 1] = (value >>> 8) & 255;
+        }
+
+        function writeU32LE(arr, offset, value) {
+            arr[offset] = value & 255;
+            arr[offset + 1] = (value >>> 8) & 255;
+            arr[offset + 2] = (value >>> 16) & 255;
+            arr[offset + 3] = (value >>> 24) & 255;
+        }
+
+        function concatUint8Arrays(parts) {
+            const total = parts.reduce((sum, p) => sum + p.length, 0);
+            const out = new Uint8Array(total);
+            let offset = 0;
+            parts.forEach(p => { out.set(p, offset); offset += p.length; });
+            return out;
+        }
+
+        function makeZipStore(files) {
+            const encoder = new TextEncoder();
+            const locals = [];
+            const centrals = [];
+            let offset = 0;
+            const dosDate = (() => {
+                const d = new Date();
+                return ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+            })();
+            const dosTime = (() => {
+                const d = new Date();
+                return (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2);
+            })();
+
+            for (const file of files) {
+                const name = encoder.encode(file.name);
+                const data = typeof file.data === 'string' ? encoder.encode(file.data) : file.data;
+                const crc = crc32(data);
+
+                const local = new Uint8Array(30 + name.length + data.length);
+                writeU32LE(local, 0, 0x04034B50);
+                writeU16LE(local, 4, 20);
+                writeU16LE(local, 6, 0);
+                writeU16LE(local, 8, 0);
+                writeU16LE(local, 10, dosTime);
+                writeU16LE(local, 12, dosDate);
+                writeU32LE(local, 14, crc);
+                writeU32LE(local, 18, data.length);
+                writeU32LE(local, 22, data.length);
+                writeU16LE(local, 26, name.length);
+                writeU16LE(local, 28, 0);
+                local.set(name, 30);
+                local.set(data, 30 + name.length);
+                locals.push(local);
+
+                const central = new Uint8Array(46 + name.length);
+                writeU32LE(central, 0, 0x02014B50);
+                writeU16LE(central, 4, 20);
+                writeU16LE(central, 6, 20);
+                writeU16LE(central, 8, 0);
+                writeU16LE(central, 10, 0);
+                writeU16LE(central, 12, dosTime);
+                writeU16LE(central, 14, dosDate);
+                writeU32LE(central, 16, crc);
+                writeU32LE(central, 20, data.length);
+                writeU32LE(central, 24, data.length);
+                writeU16LE(central, 28, name.length);
+                writeU16LE(central, 30, 0);
+                writeU16LE(central, 32, 0);
+                writeU16LE(central, 34, 0);
+                writeU16LE(central, 36, 0);
+                writeU32LE(central, 38, 0);
+                writeU32LE(central, 42, offset);
+                central.set(name, 46);
+                centrals.push(central);
+                offset += local.length;
+            }
+
+            const centralOffset = offset;
+            const centralSize = centrals.reduce((sum, p) => sum + p.length, 0);
+            const end = new Uint8Array(22);
+            writeU32LE(end, 0, 0x06054B50);
+            writeU16LE(end, 4, 0);
+            writeU16LE(end, 6, 0);
+            writeU16LE(end, 8, files.length);
+            writeU16LE(end, 10, files.length);
+            writeU32LE(end, 12, centralSize);
+            writeU32LE(end, 16, centralOffset);
+            writeU16LE(end, 20, 0);
+            return concatUint8Arrays([...locals, ...centrals, end]);
+        }
+
+        function makeXlsxBytes() {
+            const headers = ['ردیف', 'نوع تراکنش', 'تاریخ', 'نام اسامی', 'توضیحات', 'مبلغ (تومان)'];
+            const rows = transactions.map(item => [
+                item.row ?? '',
+                item.type || 'پرداختی',
+                formatRawDateToShamsi(item.dateRaw),
+                item.recipient || '',
+                item.desc || '',
+                Number(item.amount || 0)
+            ]);
+
+            const colLetters = ['A','B','C','D','E','F'];
+            let sheetRows = '';
+            const makeStringCell = (ref, value, style) => `<c r="${ref}" t="inlineStr" s="${style}"><is><t xml:space="preserve">${xlsxXmlEscape(value)}</t></is></c>`;
+            const makeNumberCell = (ref, value, style) => `<c r="${ref}" s="${style}"><v>${Number.isFinite(value) ? value : 0}</v></c>`;
+
+            const allRows = [headers, ...rows];
+            allRows.forEach((row, rIndex) => {
+                const excelRow = rIndex + 1;
+                let cells = '';
+                row.forEach((value, cIndex) => {
+                    const ref = colLetters[cIndex] + excelRow;
+                    if (rIndex === 0) cells += makeStringCell(ref, value, 1);
+                    else if (cIndex === 5) cells += makeNumberCell(ref, value, 2);
+                    else cells += makeStringCell(ref, value, 0);
+                });
+                sheetRows += `<row r="${excelRow}">${cells}</row>`;
+            });
+
+            const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+                  <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
+                  <dimension ref="A1:F${allRows.length}"/>
+                  <sheetViews><sheetView rightToLeft="1" workbookViewId="0" showGridLines="1"/></sheetViews>
+                  <sheetFormatPr defaultRowHeight="20"/>
+                  <cols>
+                    <col min="1" max="1" width="10" customWidth="1"/>
+                    <col min="2" max="2" width="16" customWidth="1"/>
+                    <col min="3" max="3" width="16" customWidth="1"/>
+                    <col min="4" max="4" width="24" customWidth="1"/>
+                    <col min="5" max="5" width="34" customWidth="1"/>
+                    <col min="6" max="6" width="20" customWidth="1"/>
+                  </cols>
+                  <sheetData>${sheetRows}</sheetData>
+                  <autoFilter ref="A1:F${allRows.length}"/>
+                </worksheet>`;
+
+            const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+                  <numFmts count="1"><numFmt numFmtId="4" formatCode="#,##0"/></numFmts>
+                  <fonts count="2">
+                    <font><sz val="11"/><name val="Tahoma"/><family val="2"/></font>
+                    <font><b/><sz val="11"/><name val="Tahoma"/><family val="2"/></font>
+                  </fonts>
+                  <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="D9EAF7"/><bgColor indexed="64"/></patternFill></fill></fills>
+                  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+                  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+                  <cellXfs count="3">
+                    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1"/></xf>
+                    <xf numFmtId="0" fontId="1" fillId="1" borderId="0" applyAlignment="1"><alignment horizontal="right" vertical="center" wrapText="1"/></xf>
+                    <xf numFmtId="4" fontId="0" fillId="0" borderId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+                  </cellXfs>
+                  <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+                </styleSheet>`;
+
+            const workbookXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                  <bookViews><workbookView xWindow="0" yWindow="0" windowWidth="18000" windowHeight="12000"/></bookViews>
+                  <sheets><sheet name="گزارش مالی" sheetId="1" r:id="rId1"/></sheets>
+                </workbook>`;
+
+            const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+                  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+                  <Default Extension="xml" ContentType="application/xml"/>
+                  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+                  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+                  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+                </Types>`;
+
+            const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+                </Relationships>`;
+
+            const workbookRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+                  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+                </Relationships>`;
+
+            return makeZipStore([
+                {name:'[Content_Types].xml', data:contentTypes},
+                {name:'_rels/.rels', data:rootRels},
+                {name:'xl/workbook.xml', data:workbookXml},
+                {name:'xl/_rels/workbook.xml.rels', data:workbookRels},
+                {name:'xl/worksheets/sheet1.xml', data:sheetXml},
+                {name:'xl/styles.xml', data:stylesXml}
+            ]);
+        }
+
+        function uint8ToBase64(bytes) {
+            let binary = '';
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+            }
+            return btoa(binary);
+        }
+
+        function exportToCsv() {
+            if (!transactions || transactions.length === 0) {
+                alert('هیچ داده‌ای برای خروجی اکسل وجود ندارد.');
+                return;
+            }
+
+            try {
+                const bytes = makeXlsxBytes();
+                const base64 = uint8ToBase64(bytes);
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const filename = `financial_export_${dateStr}.xlsx`;
+                const mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+                if (window.Android && typeof window.Android.saveBase64File === 'function') {
+                    window.Android.saveBase64File(filename, mime, base64);
+                    return;
+                }
+
+                const blob = new Blob([bytes], { type: mime });
+                saveBlobWithLocation(blob, filename, mime);
+            } catch (err) {
+                console.error('خطا در ساخت فایل XLSX:', err);
+                alert('ساخت فایل اکسل انجام نشد: ' + (err.message || err));
+            }
+        }
+
+        function toPersianDigits(str) {
+            if (str === null || str === undefined) return '';
+            return str.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        }
+
+        function toEnglishDigits(str) {
+            if (!str) return '';
+            return str.toString().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+        }
+
+        function formatRawDateToShamsi(raw) {
+            if (!raw) return '—';
+            let str = toEnglishDigits(raw).replace(/\D/g, '');
+            if (str.length === 8) {
+                return toPersianDigits(`${str.substring(0,4)}/${str.substring(4,6)}/${str.substring(6,8)}`);
+            }
+            return toPersianDigits(raw);
+        }
+
+        function formatMoney(num) {
+            if (!num || isNaN(num)) return '۰';
+            return toPersianDigits(Number(num).toLocaleString('fa-IR'));
+        }
+
+        function getTodayShamsi() {
+            const d = new Date();
+            let g_y = d.getFullYear();
+            let g_m = d.getMonth() + 1;
+            let g_d = d.getDate();
+
+            let g_days_in_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            let j_days_in_month = [0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+
+            let gy = g_y - 1600;
+            let gm = g_m - 1;
+            let gd = g_d - 1;
+
+            let g_day_no = 365 * gy + Math.floor((gy + 3) / 4) - Math.floor((gy + 99) / 100) + Math.floor((gy + 399) / 400);
+            for (let i = 0; i < gm; ++i) g_day_no += g_days_in_month[i + 1];
+            if (gm > 1 && ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0))) ++g_day_no;
+            g_day_no += gd;
+
+            let j_day_no = g_day_no - 79;
+            let j_np = Math.floor(j_day_no / 12053);
+            j_day_no %= 12053;
+
+            let jy = 979 + 33 * j_np + 4 * Math.floor(j_day_no / 1461);
+            j_day_no %= 1461;
+
+            if (j_day_no >= 366) {
+                jy += Math.floor((j_day_no - 1) / 365);
+                j_day_no = (j_day_no - 1) % 365;
+            }
+
+            let jm = 0, jd = 0;
+            for (let i = 0; i < 12; ++i) {
+                let j_month_days = j_days_in_month[i + 1];
+                if (i === 11 && isJalaliLeapYear(jy)) j_month_days = 30;
+                if (j_day_no < j_month_days) {
+                    jm = i + 1;
+                    jd = j_day_no + 1;
+                    break;
+                }
+                j_day_no -= j_month_days;
+            }
+            return { jy, jm, jd };
+        }
+
+        function numberToWordsFa(num) {
+            num = parseInt(toEnglishDigits(num), 10);
+            if (!num || isNaN(num) || num === 0) return '';
+            const yekan = ["", "یک", "دو", "سه", "چهار", "پنج", "شش", "هفت", "هشت", "نه"];
+            const dahta19 = ["ده", "یازده", "دوازده", "سیزده", "چهارده", "پانزده", "شانزده", "هفده", "هجده", "نوزده"];
+            const dahgan = ["", "", "بیست", "سی", "چهل", "پنجاه", "شصت", "هفتاد", "هشتاد", "نود"];
+            const sadgan = ["", "صد", "دویست", "سیصد", "چهارصد", "پانصد", "ششصد", "هفتصد", "هشتصد", "نهصد"];
+            const steps = ["", "هزار", "میلیون", "میلیارد", "تریلیون"];
+
+            function convertThreeDigits(n) {
+                let str = "";
+                let s = Math.floor(n / 100);
+                let d = Math.floor((n % 100) / 10);
+                let y = n % 10;
+                if (s > 0) str += sadgan[s];
+                if (d === 1) {
+                    if (str) str += " و ";
+                    str += dahta19[y];
+                } else {
+                    if (d > 1) {
+                        if (str) str += " و ";
+                        str += dahgan[d];
+                    }
+                    if (y > 0) {
+                        if (str) str += " و ";
+                        str += yekan[y];
+                    }
+                }
+                return str;
+            }
+
+            let parts = [];
+            let strNum = Math.abs(num).toString();
+            let len = strNum.length;
+            let step = 0;
+
+            for (let i = len; i > 0; i -= 3) {
+                let chunk = parseInt(strNum.substring(Math.max(0, i - 3), i), 10);
+                if (chunk > 0) {
+                    let word = convertThreeDigits(chunk);
+                    if (steps[step]) word += " " + steps[step];
+                    parts.unshift(word);
+                }
+                step++;
+            }
+            return parts.join(" و ") + " تومان";
+        }
+
+        function toggleSearchPanel() {
+            const panel=document.getElementById('searchModal');
+            const add=document.getElementById('addTypeSubGroup');
+            if(!panel) return;
+            if(add) add.classList.remove('is-active');
+            const open=!panel.classList.contains('is-active');
+            panel.classList.toggle('is-active',open);
+            if(open){
+                populateRecipientDropdowns();
+                setTimeout(()=>{
+                    const input=document.getElementById('textSearchInput');
+                    if(input){ input.focus(); input.setSelectionRange(input.value.length,input.value.length); }
+                },50);
+            } else document.getElementById('recipientSearchList')?.classList.remove('is-active');
+        }
+
+        function populateRecipientDropdowns() {
+            const selectModal = document.getElementById('fieldRecipientSelect');
+            const dataList = document.getElementById('recipientDatalist');
+            if(selectModal){
+                selectModal.innerHTML = '<option value="">اسامی کنونی</option>';
+                [...new Set(transactions.map(t=>t.recipient).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fa')).forEach(name=>{
+                    const o=document.createElement('option'); o.value=name; o.textContent=name; selectModal.appendChild(o);
+                });
+            }
+            if(dataList){
+                dataList.innerHTML='';
+                [...new Set(transactions.map(t=>t.recipient).filter(Boolean))].forEach(name=>{
+                    const o=document.createElement('option'); o.value=name; dataList.appendChild(o);
+                });
+            }
+            populateRecipientSearchList();
+        }
+
+        function populateRecipientSearchList(){
+            const list=document.getElementById('recipientSearchList');
+            if(!list) return;
+            list.innerHTML='';
+            [...new Set(transactions.map(t=>String(t.recipient||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fa')).forEach(name=>{
+                const b=document.createElement('button');
+                b.type='button'; b.className='recipient-option'; b.textContent=name;
+                b.onclick=(e)=>{
+                    e.stopPropagation();
+                    let h=document.getElementById('recipientListSelect');
+                    if(!h){h=document.createElement('input');h.type='hidden';h.id='recipientListSelect';document.body.appendChild(h);}
+                    h.value=name;
+                    list.classList.remove('is-active');
+                    applyFilters();
+                };
+                list.appendChild(b);
+            });
+            if (!list.children.length) {
+                const empty=document.createElement('div');
+                empty.className='recipient-option';
+                empty.textContent='اسمی ثبت نشده است';
+                empty.style.cursor='default';
+                list.appendChild(empty);
+            }
+        }
+
+        function toggleRecipientSearchList(event){
+            if(event) event.stopPropagation();
+            const list=document.getElementById('recipientSearchList');
+            if(!list) return;
+            populateRecipientSearchList();
+            list.classList.toggle('is-active');
+        }
+
+        function toggleAddTypeButtons() {
+            const subgroup=document.getElementById('addTypeSubGroup');
+            const search=document.getElementById('searchModal');
+            if(search) search.classList.remove('is-active');
+            if(subgroup) subgroup.classList.toggle('is-active');
+        }
+
+        function selectExistingRecipient(val) {
+            if (val) {
+                document.getElementById('fieldRecipient').value = val;
+            }
+        }
+
+        function toggleCardOpen(id) {
+            if (openCardIds.has(id)) {
+                openCardIds.delete(id);
+                activeSubcardsMap[id] = null;
+                activeActionsMap[id] = false;
+            } else {
+                openCardIds.clear();
+                openCardIds.add(id);
+                activeSubcardsMap[id] = null;
+                activeActionsMap[id] = false;
+            }
+            applyFilters();
+        }
+
+        function toggleSubcardTab(id, tabName, event) {
+            if (event) event.stopPropagation();
+            if (activeSubcardsMap[id] === tabName) {
+                activeSubcardsMap[id] = null;
+            } else {
+                activeSubcardsMap[id] = tabName;
+            }
+            applyFilters();
+        }
+
+        function toggleCardActions(id, event) {
+            if (event) event.stopPropagation();
+            activeActionsMap[id] = !activeActionsMap[id];
+            applyFilters();
+        }
+
+        function renderSubcardItemsView(items) {
+            if (!items || items.length === 0) {
+                return '<div style="color: #94a3b8; font-size: 0.82rem; font-weight: normal; text-align: center; padding: 4px;">اطلاعاتی ثبت نشده است.</div>';
+            }
+            return items.map((item) => {
+                let contentHtml = '';
+                if (item.type === 'text') {
+                    contentHtml = `<div class="text-note-chip">${escapeHtml(toPersianDigits(item.text || ''))}</div>`;
+                } else {
+                    const href = escapeHtml(safeAttachmentHref(item.url));
+                    const name = escapeHtml(item.name || 'file');
+                    contentHtml = `<a href="${href}" download="${name}" class="attachment-chip">📎 ${name}</a>`;
+                }
+                return `
+                    <div class="subcard-item-wrapper">
+                        <div class="subcard-item-content">${contentHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCards(data) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 15px; color: #94a3b8; font-size: 0.78rem;">هیچ تراکنشی یافت نشد.</div>';
+                return;
+            }
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                const isOpen = openCardIds.has(item.id);
+                card.className = `open-card ${isOpen ? 'is-open' : ''}`;
+                const shamsiDate = formatRawDateToShamsi(item.dateRaw);
+
+                const isRec = item.type === 'دریافتی';
+                const amountClass = isRec ? 'amount-rec' : 'amount-pay';
+
+                const atts = item.attachments || { attachment: [], cash: [], check: [] };
+                const countAtt = (atts.attachment || []).length;
+                const countCash = (atts.cash || []).length;
+                const countCheck = (atts.check || []).length;
+
+                const hasAttClass = countAtt > 0 ? 'has-data' : '';
+                const hasCashClass = countCash > 0 ? 'has-data' : '';
+                const hasCheckClass = countCheck > 0 ? 'has-data' : '';
+
+                const activeTab = activeSubcardsMap[item.id] || null;
+                const isActionsOpen = activeActionsMap[item.id] || false;
+
+                let expandedContentHtml = '';
+                if (activeTab === 'att') {
+                    expandedContentHtml = renderSubcardItemsView(atts.attachment);
+                } else if (activeTab === 'cash') {
+                    expandedContentHtml = renderSubcardItemsView(atts.cash);
+                } else if (activeTab === 'check') {
+                    expandedContentHtml = renderSubcardItemsView(atts.check);
+                }
+
+                card.innerHTML = `
+                    <div class="card-header-toggle" role="button" tabindex="0" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="جزئیات تراکنش ${escapeHtml(item.recipient || '')}" onclick="toggleCardOpen(${item.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCardOpen(${item.id});}">
+                        <div class="header-main-info">
+                            <span class="badge-row-num">${toPersianDigits(item.row)}</span>
+                            <span class="card-date-badge">${escapeHtml(shamsiDate)}</span>
+                            <span class="recipient-name">${escapeHtml(item.recipient)}</span>
+                        </div>
+                        <div class="header-left-group">
+                            <span class="amount-display ${amountClass}">${formatMoney(item.amount)} تومان</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="card-expand-body">
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">📝 توضیحات:</span>
+                                <span class="detail-value">${escapeHtml(item.desc || 'بدون توضیح')}</span>
+                            </div>
+                        </div>
+
+                        <div class="subcards-container">
+                            <div class="subcards-buttons-row">
+                                <button type="button" class="subcard-tab-btn ${hasAttClass} ${activeTab === 'att' ? 'is-active' : ''}" onclick="toggleSubcardTab(${item.id}, 'att', event)">
+                                    📁 پیوست (${toPersianDigits(countAtt)})
+                                </button>
+                                <button type="button" class="subcard-tab-btn ${hasCashClass} ${activeTab === 'cash' ? 'is-active' : ''}" onclick="toggleSubcardTab(${item.id}, 'cash', event)">
+                                    💵 پرداخت نقدی (${toPersianDigits(countCash)})
+                                </button>
+                                <button type="button" class="subcard-tab-btn ${hasCheckClass} ${activeTab === 'check' ? 'is-active' : ''}" onclick="toggleSubcardTab(${item.id}, 'check', event)">
+                                    🧾 پرداخت چکی (${toPersianDigits(countCheck)})
+                                </button>
+                            </div>
+
+                            ${activeTab ? `
+                                <div class="subcard-full-panel">
+                                    ${expandedContentHtml}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="card-actions-row">
+                            <button type="button" class="btn-action-card edit-btn" style="font-size:0.7rem; padding: 2px 6px;" onclick="toggleCardActions(${item.id}, event)">
+                                ✏️ ویرایش ${isActionsOpen ? '▲' : '▼'}
+                            </button>
+                            ${isActionsOpen ? `
+                                <div class="actions-sub-group">
+                                    <button type="button" class="btn-action-card edit-btn" title="ویرایش کل تراکنش" aria-label="ویرایش کل تراکنش" onclick="event.stopPropagation(); openEditForm(${item.id})">✏️</button>
+                                    <button type="button" class="btn-action-card delete-btn" title="حذف تراکنش" aria-label="حذف تراکنش" onclick="event.stopPropagation(); askDeleteConfirm(${item.id})">🗑️</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('textSearchInput').value.toLowerCase().trim();
+            const selectedRecipient = document.getElementById('recipientListSelect')?.value || '';
+
+            const filtered = transactions.filter(t => {
+                if (selectedRecipient && t.recipient !== selectedRecipient) {
+                    return false;
+                }
+                if (query) {
+                    const shamsi = formatRawDateToShamsi(t.dateRaw);
+                    const haystack = `${t.row} ${t.recipient} ${t.desc} ${t.dateRaw} ${shamsi} ${t.amount} ${t.type}`.toLowerCase();
+                    if (!haystack.includes(query)) return false;
+                }
+                return true;
+            });
+
+            document.getElementById('statCount').textContent = toPersianDigits(filtered.length);
+            
+            let totalRec = 0;
+            let totalPay = 0;
+            filtered.forEach(item => {
+                const amt = Number(item.amount || 0);
+                if (item.type === 'دریافتی') {
+                    totalRec += amt;
+                } else {
+                    totalPay += amt;
+                }
+            });
+            const diff = totalRec - totalPay;
+
+            document.getElementById('statRecAmount').textContent = `${formatMoney(totalRec)} تومان`;
+            document.getElementById('statPayAmount').textContent = `${formatMoney(totalPay)} تومان`;
+            
+            const diffElem = document.getElementById('statDiffAmount');
+            diffElem.textContent = `${formatMoney(diff)} تومان`;
+            diffElem.className = 'stat-val amount-diff';
+            const diffHeader = diffElem.closest('.header-diff');
+            if (diffHeader) {
+                diffHeader.classList.remove('diff-positive','diff-negative','diff-zero');
+                diffHeader.classList.add(diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : 'diff-zero');
+            }
+
+            renderCards(filtered);
+        }
+
+        function toggleSubcardListInForm(cat) {
+            openFormSubcardLists[cat] = !openFormSubcardLists[cat];
+            const box = document.getElementById(`attachmentsBox_${cat}`);
+            const btn = document.getElementById(`btnToggleList_${cat}`);
+
+            if (openFormSubcardLists[cat]) {
+                box.classList.add('is-open');
+                btn.classList.add('is-active');
+            } else {
+                box.classList.remove('is-open');
+                btn.classList.remove('is-active');
+            }
+        }
+
+        function setRecipientFieldVisibility(type){
+            const row=document.getElementById('recipientFormRow'), input=document.getElementById('fieldRecipient'), select=document.getElementById('fieldRecipientSelect');
+            if(!row) return; row.style.display='flex';
+            if(input){ input.required=true; input.disabled=false; }
+            if(select) select.disabled=false;
+        }
+
+        function openEditForm(id) {
+            const item = transactions.find(t => t.id === id);
+            if (!item) return;
+
+            currentModalType = item.type || 'پرداختی';
+            setRecipientFieldVisibility(currentModalType);
+            const modalBox = document.querySelector('#formModal .modal-box');
+            modalBox.classList.remove('theme-payment', 'theme-receipt');
+
+            if (currentModalType === 'پرداختی') {
+                document.getElementById('formTitleText').textContent = '📤 ویرایش تراکنش پرداختی';
+                modalBox.classList.add('theme-payment');
+            } else {
+                document.getElementById('formTitleText').textContent = '📥 ویرایش تراکنش دریافتی';
+                modalBox.classList.add('theme-receipt');
+            }
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('fieldDateRaw').value = toPersianDigits(item.dateRaw || '');
+            document.getElementById('fieldRecipient').value = item.recipient;
+            document.getElementById('fieldRecipientSelect').value = '';
+            document.getElementById('fieldDesc').value = item.desc || '';
+            
+            const rawAmt = item.amount ? item.amount.toString() : '';
+            document.getElementById('fieldAmount').value = toPersianDigits(rawAmt.replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+            
+            const amtWordsElem = document.getElementById('amountWordsText');
+            const words = numberToWordsFa(rawAmt);
+            amtWordsElem.textContent = words;
+            amtWordsElem.title = words;
+
+            tempFormDocs = {
+                attachment: item.attachments && item.attachments.attachment ? [...item.attachments.attachment] : [],
+                cash: item.attachments && item.attachments.cash ? [...item.attachments.cash] : [],
+                check: item.attachments && item.attachments.check ? [...item.attachments.check] : []
+            };
+
+            openFormSubcardLists = { attachment: false, cash: false, check: false };
+            ['attachment', 'cash', 'check'].forEach(c => {
+                document.getElementById(`attachmentsBox_${c}`).classList.remove('is-open');
+                document.getElementById(`btnToggleList_${c}`).classList.remove('is-active');
+            });
+
+            renderAllFormDocBoxes();
+            document.getElementById('formModal').style.display = 'flex';
+        }
+
+        function openAddModal(type) {
+            selectedTargetId = null;
+            currentModalType = type;
+            setRecipientFieldVisibility(currentModalType);
+            const modalBox = document.querySelector('#formModal .modal-box');
+            modalBox.classList.remove('theme-payment', 'theme-receipt');
+
+            if (type === 'پرداختی') {
+                document.getElementById('formTitleText').textContent = '📤 ثبت پرداختی جدید';
+                modalBox.classList.add('theme-payment');
+            } else if (type === 'دریافتی') {
+                document.getElementById('formTitleText').textContent = '📥 ثبت دریافتی جدید';
+                modalBox.classList.add('theme-receipt');
+            } else {
+                document.getElementById('formTitleText').textContent = '➕ ثبت تراکنش جدید';
+            }
+
+            document.getElementById('transactionForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('fieldRecipientSelect').value = '';
+            
+            const amtWordsElem = document.getElementById('amountWordsText');
+            amtWordsElem.textContent = '';
+            amtWordsElem.title = '';
+            
+            tempFormDocs = { attachment: [], cash: [], check: [] };
+            openFormSubcardLists = { attachment: false, cash: false, check: false };
+            ['attachment', 'cash', 'check'].forEach(c => {
+                document.getElementById(`attachmentsBox_${c}`).classList.remove('is-open');
+                document.getElementById(`btnToggleList_${c}`).classList.remove('is-active');
+            });
+
+            renderAllFormDocBoxes();
+            document.getElementById('addTypeSubGroup').classList.remove('is-active');
+            document.getElementById('formModal').style.display = 'flex';
+        }
+
+        function handleAmountInput(input, targetWordsId) {
+            let cleanVal = toEnglishDigits(input.value).replace(/\D/g, '');
+            if (cleanVal) {
+                input.value = toPersianDigits(cleanVal.replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+                if (targetWordsId) {
+                    const words = numberToWordsFa(cleanVal);
+                    const elem = document.getElementById(targetWordsId);
+                    elem.textContent = words;
+                    elem.title = words;
+                }
+            } else {
+                input.value = '';
+                if (targetWordsId) {
+                    const elem = document.getElementById(targetWordsId);
+                    elem.textContent = '';
+                    elem.title = '';
+                }
+            }
+        }
+
+        function handleCheckAmountInput(input) {
+            let cleanVal = toEnglishDigits(input.value).replace(/\D/g, '');
+            const inlineWordsElem = document.getElementById('chkAmountWordsInline');
+            
+            if (cleanVal) {
+                input.value = toPersianDigits(cleanVal.replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+                const words = numberToWordsFa(cleanVal);
+                inlineWordsElem.textContent = words;
+                inlineWordsElem.title = words;
+            } else {
+                input.value = '';
+                inlineWordsElem.textContent = '';
+                inlineWordsElem.title = '';
+            }
+        }
+
+        function handleBankBranchDotAutoSlash(input) {
+            let val = input.value;
+            if (val.includes('.')) {
+                val = val.replace(/\./g, ' / ');
+                input.value = val;
+            }
+        }
+
+        function formatAndValidateDateInput(input) {
+            input.value = toPersianDigits(input.value);
+        }
+
+        function renderAllFormDocBoxes() {
+            renderFormDocsCategory('attachment');
+            renderFormDocsCategory('cash');
+            renderFormDocsCategory('check');
+        }
+
+        function renderFormDocsCategory(cat) {
+            const container = document.getElementById(`attachmentsBox_${cat}`);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const docsList = tempFormDocs[cat] || [];
+            if (docsList.length === 0) {
+                container.innerHTML = '<div style="color:#94a3b8; font-size: 0.68rem; text-align: center;">سندی ثبت نشده است.</div>';
+                return;
+            }
+
+            docsList.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'file-item-row';
+                let contentText = item.type === 'text' ? `📝 ${item.text.replace(/\n/g, ' | ')}` : `📄 ${item.name}`;
+                row.innerHTML = `
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${escapeHtml(contentText)}</span>
+                    <div class="file-item-actions">
+                        <button type="button" class="file-item-btn edit" onclick="openUnifiedPickerForEdit('${cat}', ${idx})">✏️ ویرایش</button>
+                        <button type="button" class="file-item-btn remove" onclick="askDeleteSubcardTemp('${cat}', ${idx})">🗑️ حذف</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function openUnifiedPicker(cat) {
+            activeCategory = cat;
+            editingSubcardIndex = null;
+
+            let title = '📎 افزودن به پیوست';
+            if (cat === 'cash') title = '💵 افزودن به پرداخت نقد';
+            if (cat === 'check') title = '🧾 افزودن به پرداخت چک';
+            
+            // انطباق تم رنگی پنجره چک/پیوست بر اساس نوع تراکنش (پرداختی / دریافتی)
+            const pickerBox = document.querySelector('#unifiedPickerModal .modal-box');
+            pickerBox.classList.remove('theme-payment', 'theme-receipt');
+            if (currentModalType === 'پرداختی') {
+                pickerBox.classList.add('theme-payment');
+            } else if (currentModalType === 'دریافتی') {
+                pickerBox.classList.add('theme-receipt');
+            }
+
+            document.getElementById('pickerTitleText').textContent = title;
+            pickerBaseTitle = title;
+            document.getElementById('pickerGridOptions').style.display = 'grid';
+            document.getElementById('textInputAreaBox').style.display = 'none';
+            document.getElementById('checkFormBox').style.display = 'none';
+            document.getElementById('pickerTextInput').value = '';
+
+            const btnCheckInfo = document.getElementById('btnCheckInfoOption');
+            if (btnCheckInfo) {
+                btnCheckInfo.style.display = (cat === 'check') ? 'flex' : 'none';
+            }
+
+            document.getElementById('unifiedPickerModal').style.display = 'flex';
+        }
+
+        function openUnifiedPickerForEdit(cat, index) {
+            activeCategory = cat;
+            editingSubcardIndex = index;
+            const targetItem = tempFormDocs[cat][index];
+
+            const pickerBox = document.querySelector('#unifiedPickerModal .modal-box');
+            pickerBox.classList.remove('theme-payment', 'theme-receipt');
+            if (currentModalType === 'پرداختی') {
+                pickerBox.classList.add('theme-payment');
+            } else if (currentModalType === 'دریافتی') {
+                pickerBox.classList.add('theme-receipt');
+            }
+
+            document.getElementById('pickerTitleText').textContent = '✏️ ویرایش زیرمجموعه';
+            document.getElementById('pickerGridOptions').style.display = 'none';
+            const btnCheckInfo = document.getElementById('btnCheckInfoOption');
+            if (btnCheckInfo) btnCheckInfo.style.display = 'none';
+
+            if (targetItem.type === 'text' && targetItem.text.includes('تاریخ چک:')) {
+                showCheckFormBox();
+                parseAndFillCheckForm(targetItem.text);
+            } else if (targetItem.type === 'text') {
+                showTextInputBox('text');
+                document.getElementById('pickerTextInput').value = targetItem.text;
+            } else {
+                document.getElementById('pickerGridOptions').style.display = 'grid';
+                document.getElementById('textInputAreaBox').style.display = 'none';
+                document.getElementById('checkFormBox').style.display = 'none';
+            }
+
+            document.getElementById('unifiedPickerModal').style.display = 'flex';
+        }
+
+        function parseAndFillCheckForm(text) {
+            const lines = text.split('\n');
+            let dateVal = '', amtVal = '', issuerVal = '', ownerVal = '', sayadiVal = '', bankVal = '';
+
+            lines.forEach(line => {
+                if (line.startsWith('تاریخ چک:')) dateVal = line.replace('تاریخ چک:', '').trim();
+                if (line.startsWith('مبلغ چک:')) {
+                    let parts = line.replace('مبلغ چک:', '').trim().split(' تومان');
+                    amtVal = parts[0] ? parts[0].trim() : '';
+                }
+                if (line.startsWith('دهنده چک:')) issuerVal = line.replace('دهنده چک:', '').trim();
+                if (line.startsWith('صاحب حساب:')) ownerVal = line.replace('صاحب حساب:', '').trim();
+                if (line.startsWith('شماره صیادی:')) sayadiVal = line.replace('شماره صیادی:', '').trim();
+                if (line.startsWith('بانک/شعبه:')) bankVal = line.replace('بانک/شعبه:', '').trim();
+            });
+
+            document.getElementById('chkDate').value = dateVal === '—' ? '' : dateVal;
+            document.getElementById('chkAmount').value = amtVal === '—' ? '' : amtVal;
+            handleCheckAmountInput(document.getElementById('chkAmount'));
+            document.getElementById('chkIssuer').value = issuerVal === '—' ? '' : issuerVal;
+            document.getElementById('chkOwner').value = ownerVal === '—' ? '' : ownerVal;
+            document.getElementById('chkSayadi').value = sayadiVal === '—' ? '' : sayadiVal;
+            document.getElementById('chkBank').value = bankVal === '—' ? '' : bankVal;
+        }
+
+        function triggerPicker(type) {
+            if (type === 'storage') document.getElementById('inputStorage').click();
+        }
+
+        function showTextInputBox(mode) {
+            document.getElementById('checkFormBox').style.display = 'none';
+            const areaBox = document.getElementById('textInputAreaBox');
+            const textarea = document.getElementById('pickerTextInput');
+            areaBox.style.display = 'flex';
+            if (editingSubcardIndex === null) textarea.value = '';
+            textarea.focus();
+        }
+
+        function showCheckFormBox() {
+            document.getElementById('textInputAreaBox').style.display = 'none';
+            const checkBox = document.getElementById('checkFormBox');
+            checkBox.style.display = 'flex';
+            
+            if (editingSubcardIndex === null) {
+                document.getElementById('chkDate').value = '';
+                document.getElementById('chkAmount').value = '';
+                document.getElementById('chkAmountWordsInline').textContent = '';
+                document.getElementById('chkIssuer').value = '';
+                document.getElementById('chkOwner').value = '';
+                document.getElementById('chkSayadi').value = '';
+                document.getElementById('chkBank').value = '';
+            }
+        }
+
+        function saveStructuredCheckInfo() {
+            const dateVal = document.getElementById('chkDate').value.trim();
+            const amtVal = document.getElementById('chkAmount').value.trim();
+            const amtWords = document.getElementById('chkAmountWordsInline').textContent.trim();
+            const issuerVal = document.getElementById('chkIssuer').value.trim();
+            const ownerVal = document.getElementById('chkOwner').value.trim();
+            const sayadiVal = document.getElementById('chkSayadi').value.trim();
+            let bankVal = document.getElementById('chkBank').value.trim();
+
+            if (bankVal.includes('.')) {
+                bankVal = bankVal.replace(/\./g, ' / ');
+            }
+
+            let formattedText = `تاریخ چک: ${dateVal || '—'}\n` +
+                                `مبلغ چک: ${amtVal ? amtVal + ' تومان' : '—'} ${amtWords ? '(' + amtWords + ')' : ''}\n` +
+                                `دهنده چک: ${issuerVal || '—'}\n` +
+                                `صاحب حساب: ${ownerVal || '—'}\n` +
+                                `شماره صیادی: ${sayadiVal || '—'}\n` +
+                                `بانک/شعبه: ${bankVal || '—'}`;
+
+            const docData = { type: 'text', text: formattedText };
+            commitSubcardSave(docData);
+        }
+
+        function saveTextAttachment() {
+            const val = document.getElementById('pickerTextInput').value.trim();
+            if (val) {
+                const docData = { type: 'text', text: val };
+                commitSubcardSave(docData);
+            }
+        }
+
+        function handleFilePicked(input, fileType) {
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const MAX_FILE_BYTES = 20 * 1024 * 1024;
+                if (file.size > MAX_FILE_BYTES) {
+                    alert('حجم فایل بیش از حد مجاز است (حداکثر ۲۰ مگابایت). لطفاً فایل کوچک‌تری انتخاب کنید تا از پر شدن حافظه ذخیره‌سازی جلوگیری شود.');
+                    input.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const docData = {
+                        type: 'file',
+                        name: file.name,
+                        url: e.target.result
+                    };
+                    commitSubcardSave(docData);
+                };
+                reader.readAsDataURL(file);
+                input.value = '';
+            }
+        }
+
+        function resetPickerToGridView() {
+            document.getElementById('pickerTitleText').textContent = pickerBaseTitle || '📎 افزودن سند';
+            document.getElementById('pickerGridOptions').style.display = 'grid';
+            document.getElementById('textInputAreaBox').style.display = 'none';
+            document.getElementById('checkFormBox').style.display = 'none';
+            document.getElementById('pickerTextInput').value = '';
+            const btnCheckInfo = document.getElementById('btnCheckInfoOption');
+            if (btnCheckInfo) {
+                btnCheckInfo.style.display = (activeCategory === 'check') ? 'flex' : 'none';
+            }
+        }
+
+        function commitSubcardSave(docData) {
+            if (editingSubcardIndex !== null) {
+                tempFormDocs[activeCategory][editingSubcardIndex] = docData;
+                renderFormDocsCategory(activeCategory);
+                closeModal('unifiedPickerModal');
+            } else {
+                tempFormDocs[activeCategory].push(docData);
+                renderFormDocsCategory(activeCategory);
+                resetPickerToGridView();
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const recipientVal = document.getElementById('fieldRecipient').value.trim();
+            const dateRawVal = toEnglishDigits(document.getElementById('fieldDateRaw').value.trim()).replace(/\D/g, '');
+            const rawAmount = toEnglishDigits(document.getElementById('fieldAmount').value).replace(/\D/g, '');
+            const amountVal = parseFloat(rawAmount) || 0;
+            const descVal = document.getElementById('fieldDesc').value.trim();
+
+            if (!/^\d{8}$/.test(dateRawVal)) {
+                alert('تاریخ باید به صورت ۸ رقم وارد شود؛ مثال: ۱۴۰۵۰۵۱۶');
+                return;
+            }
+            if (!recipientVal) {
+                alert('لطفاً نام اسامی را وارد کنید.');
+                return;
+            }
+            if (!Number.isFinite(amountVal) || amountVal <= 0) {
+                alert('لطفاً مبلغ معتبر و بزرگ‌تر از صفر وارد کنید.');
+                return;
+            }
+
+            const previousTransactions = transactions;
+            let newTransactions;
+            let newId = null;
+
+            if (editId) {
+                const idx = transactions.findIndex(t => t.id == editId);
+                if (idx === -1) {
+                    alert('این تراکنش دیگر وجود ندارد؛ احتمالاً از صفحه دیگری حذف شده است.');
+                    closeModal('formModal');
+                    return;
+                }
+                newTransactions = transactions.map((t, i) => i === idx ? {
+                    ...t,
+                    recipient: recipientVal,
+                    dateRaw: dateRawVal,
+                    amount: amountVal,
+                    desc: descVal,
+                    type: currentModalType,
+                    attachments: JSON.parse(JSON.stringify(tempFormDocs))
+                } : t);
+            } else {
+                newId = transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1;
+                const nextRow = transactions.length > 0 ? Math.max(...transactions.map(t => t.row)) + 1 : 1;
+                const newItem = {
+                    id: newId,
+                    row: nextRow,
+                    recipient: recipientVal,
+                    dateRaw: dateRawVal,
+                    amount: amountVal,
+                    desc: descVal,
+                    type: currentModalType,
+                    attachments: JSON.parse(JSON.stringify(tempFormDocs))
+                };
+                newTransactions = [...transactions, newItem];
+            }
+
+            transactions = newTransactions;
+            if (!saveData()) {
+                transactions = previousTransactions;
+                return;
+            }
+            if (newId !== null) {
+                openCardIds.clear();
+                openCardIds.add(newId);
+            }
+            populateRecipientDropdowns();
+            applyFilters();
+            closeModal('formModal');
+        }
+
+        function askDeleteConfirm(id) {
+            deleteType = 'transaction';
+            selectedTargetId = id;
+            const item = transactions.find(t => t.id === id);
+            if (!item) return;
+
+            document.getElementById('deleteModalTitle').textContent = '⚠️ استعلام حذف تراکنش';
+            document.getElementById('deleteModalBody').textContent = `آیا از حذف تراکنش ردیف ${toPersianDigits(item.row)} (${item.recipient}) اطمینان دارید؟`;
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+        }
+
+        function askDeleteSubcardTemp(catKey, index) {
+            deleteType = 'subcard_temp';
+            selectedSubcardCat = catKey;
+            selectedSubcardIndex = index;
+
+            document.getElementById('deleteModalTitle').textContent = '⚠️ استعلام حذف سند';
+            document.getElementById('deleteModalBody').textContent = 'آیا از حذف این سند از پیش‌نویس فرم اطمینان دارید؟';
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+        }
+
+        function executeDelete() {
+            if (deleteType === 'transaction') {
+                if (selectedTargetId) {
+                    const previousTransactions = transactions;
+                    transactions = transactions.filter(t => t.id !== selectedTargetId);
+                    if (!saveData()) {
+                        transactions = previousTransactions;
+                        closeModal('deleteConfirmModal');
+                        return;
+                    }
+                    openCardIds.delete(selectedTargetId);
+                    delete activeSubcardsMap[selectedTargetId];
+                    delete activeActionsMap[selectedTargetId];
+                    populateRecipientDropdowns();
+                    applyFilters();
+                }
+            } else if (deleteType === 'subcard_temp') {
+                if (tempFormDocs[selectedSubcardCat]) {
+                    tempFormDocs[selectedSubcardCat].splice(selectedSubcardIndex, 1);
+                    renderFormDocsCategory(selectedSubcardCat);
+                }
+            }
+            closeModal('deleteConfirmModal');
+        }
+
+        function openCalendarModal(target) {
+            activeCalendarTarget = target || 'main_date';
+            todayShamsiObj = getTodayShamsi();
+            currentCalYear = todayShamsiObj.jy;
+            currentCalMonth = todayShamsiObj.jm;
+
+            renderCalendar();
+            document.getElementById('calendarModal').style.display = 'flex';
+        }
+
+        function changeCalMonth(delta) {
+            currentCalMonth += delta;
+            if (currentCalMonth > 12) {
+                currentCalMonth = 1;
+                currentCalYear++;
+            } else if (currentCalMonth < 1) {
+                currentCalMonth = 12;
+                currentCalYear--;
+            }
+            renderCalendar();
+        }
+
+        function isJalaliLeapYear(jy) {
+            const mod = ((jy - 474) % 2820 + 2820) % 2820;
+            return (((mod + 38) * 682) % 2816) < 682;
+        }
+
+        function jalaliToGregorian(jy, jm, jd) {
+            const epBase = jy - (jy >= 0 ? 474 : 473);
+            const epYear = 474 + (((epBase % 2820) + 2820) % 2820);
+            const mdays = jm <= 7 ? (jm - 1) * 31 : (jm - 1) * 30 + 6;
+            const jdn = jd + mdays +
+                Math.floor((epYear * 682 - 110) / 2816) +
+                (epYear - 1) * 365 +
+                Math.floor(epBase / 2820) * 1029983 +
+                1948320;
+            let depoch = jdn - 1;
+            const cycle = Math.floor(depoch / 146097);
+            depoch %= 146097;
+            let y = 400 * Math.floor(depoch / 36524);
+            depoch %= 36524;
+            if (depoch >= 365) {
+                y += Math.floor(depoch / 365);
+                depoch %= 365;
+            }
+            const gy = y + cycle * 400;
+            const doy = depoch + 1;
+            const leap = (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0);
+            const monthDays = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            let gm = 1, rem = doy;
+            for (let i = 0; i < 12; i++) {
+                if (rem <= monthDays[i]) { gm = i + 1; break; }
+                rem -= monthDays[i];
+            }
+            return { gy, gm, gd: rem };
+        }
+
+        function getJalaliWeekday(jy, jm, jd) {
+            const g = jalaliToGregorian(jy, jm, jd);
+            return new Date(g.gy, g.gm - 1, g.gd).getDay(); // Sunday=0 ... Saturday=6
+        }
+
+        function renderCalendar() {
+            document.getElementById('calMonthYearTitle').textContent = `${shamsiMonths[currentCalMonth - 1]} ${toPersianDigits(currentCalYear)}`;
+            const grid = document.getElementById('calendarDaysGrid');
+            grid.innerHTML = '';
+
+            const daysInMonth = currentCalMonth <= 6 ? 31 : (currentCalMonth <= 11 ? 30 : (isJalaliLeapYear(currentCalYear) ? 30 : 29));
+            const firstWeekdaySundayBased = getJalaliWeekday(currentCalYear, currentCalMonth, 1);
+            const leadingBlanks = (firstWeekdaySundayBased + 1) % 7; // Saturday-first
+
+            for (let i = 0; i < leadingBlanks; i++) {
+                const blank = document.createElement('span');
+                blank.setAttribute('aria-hidden', 'true');
+                grid.appendChild(blank);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isToday = (todayShamsiObj && currentCalYear === todayShamsiObj.jy && currentCalMonth === todayShamsiObj.jm && d === todayShamsiObj.jd);
+                btn.className = `calendar-day-btn ${isToday ? 'is-today' : ''}`;
+                btn.textContent = toPersianDigits(d);
+                btn.onclick = () => selectCalDay(d);
+                grid.appendChild(btn);
+            }
+        }
+        function selectCalDay(day) {
+            const mStr = currentCalMonth < 10 ? '0' + currentCalMonth : String(currentCalMonth);
+            const dStr = day < 10 ? '0' + day : String(day);
+            const fullRaw = `${currentCalYear}/${mStr}/${dStr}`;
+            
+            if (activeCalendarTarget === 'check_date') {
+                document.getElementById('chkDate').value = toPersianDigits(fullRaw);
+            } else {
+                document.getElementById('fieldDateRaw').value = toPersianDigits(`${currentCalYear}${mStr}${dStr}`);
+            }
+            closeModal('calendarModal');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function toggleSettingsMenu(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('settingsMenu').classList.toggle('is-open');
+        }
+        function closeSettingsMenu() { const m=document.getElementById('settingsMenu'); if(m)m.classList.remove('is-open'); const b=document.getElementById('backupSubMenu'); if(b)b.classList.remove('is-active'); const bt=document.querySelector('.backup-menu-toggle'); if(bt)bt.classList.remove('is-active'); const ex=document.getElementById('exportSubMenu'); if(ex)ex.classList.remove('is-active'); const et=document.querySelector('.export-menu-toggle'); if(et)et.classList.remove('is-active'); }
+        function toggleBackupMenu(event) {
+            if(event) event.stopPropagation();
+            const menu=document.getElementById('backupSubMenu');
+            const btn=document.querySelector('.backup-menu-toggle');
+            if(!menu) return;
+            const open=menu.classList.toggle('is-active');
+            if(btn) btn.classList.toggle('is-active',open);
+        }
+        function openSecuritySettings() { closeSettingsMenu(); document.getElementById('securityPin').value=''; document.getElementById('securityModal').style.display='flex'; }
+        function saveSecurityPin() {
+            const pin=String(document.getElementById('securityPin').value||'').replace(/\D/g,'');
+            if(!/^\d{4,8}$/.test(pin)){ alert('رمز عبور باید بین ۴ تا ۸ رقم باشد.'); return; }
+            localStorage.setItem('financeAppPin',pin); alert('رمز عبور فعال شد.'); closeModal('securityModal');
+        }
+        function removeSecurityPin() { localStorage.removeItem('financeAppPin'); document.getElementById('securityPin').value=''; alert('رمز عبور حذف شد.'); }
+        function unlockApp() {
+            const saved=localStorage.getItem('financeAppPin'); const entered=String(document.getElementById('unlockPin').value||'').replace(/\D/g,'');
+            if(saved && entered===saved){ document.getElementById('lockModal').style.display='none'; document.getElementById('unlockPin').value=''; document.getElementById('unlockError').style.display='none'; }
+            else document.getElementById('unlockError').style.display='block';
+        }
+        function tryBiometricUnlock() {
+            if(window.Android && typeof window.Android.authenticateBiometric==='function'){ window.Android.authenticateBiometric(); return; }
+            alert('اثر انگشت در نسخه APK اندروید فعال می‌شود. در نسخه HTML از رمز عددی استفاده کنید.');
+        }
+        function enableBiometric() {
+            if(window.Android && typeof window.Android.enableBiometric==='function'){ window.Android.enableBiometric(); return; }
+            alert('فعال‌سازی واقعی اثر انگشت در نسخه APK اندروید انجام می‌شود.');
+        }
+        async function saveBlobWithLocation(blob, filename, mime) {
+            try{
+                const base64 = await blobToBase64(blob);
+                if(window.Android && typeof window.Android.saveBase64File === 'function'){
+                    window.Android.saveBase64File(filename, mime, base64);
+                    return true;
+                }
+            }catch(e){ console.warn('Android file bridge failed:',e); }
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{description: mime.includes('pdf') ? 'PDF' : 'Excel', accept: {[mime]: [filename.toLowerCase().endsWith('.pdf') ? '.pdf' : '.xlsx']}}]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob); await writable.close();
+                    return true;
+                } catch(e) { if(e && e.name === 'AbortError') return false; }
+            }
+            const url=URL.createObjectURL(blob), a=document.createElement('a');
+            a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),1500); return true;
+        }
+
+        function toggleExportMenu(event){
+            if(event) event.stopPropagation();
+            const menu=document.getElementById('exportSubMenu'), btn=document.querySelector('.export-menu-toggle');
+            if(!menu) return; const open=menu.classList.toggle('is-active'); if(btn) btn.classList.toggle('is-active',open);
+        }
+
+        function buildPdfHtml(){
+            const rows=transactions.map(t=>`<tr><td>${escapeHtml(String(t.row||''))}</td><td>${escapeHtml(String(t.dateRaw||''))}</td><td>${escapeHtml(String(t.recipient||''))}</td><td>${escapeHtml(String(t.desc||''))}</td><td>${Number(t.amount||0).toLocaleString('fa-IR')}</td><td>${escapeHtml(String(t.type||''))}</td></tr>`).join('');
+            return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>خروجی PDF</title><style>body{font-family:Tahoma,Arial;padding:20px}h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aaa;padding:6px;text-align:right;font-size:12px}th{background:#eee}</style></head><body><h2>گزارش حسابداری</h2><table><thead><tr><th>ردیف</th><th>تاریخ</th><th>اسامی</th><th>توضیحات</th><th>مبلغ</th><th>نوع</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+        }
+        async function exportToPdf(){
+            if(!transactions || !transactions.length){ alert('هیچ داده‌ای برای خروجی PDF وجود ندارد.'); return; }
+            const html=buildPdfHtml();
+            const filename=`financial_export_${new Date().toISOString().slice(0,10)}.pdf`;
+            // قرارداد مخصوص APK: Android فایل PDF را با PdfDocument/PrintDocument واقعی می‌سازد.
+            if(window.Android && typeof window.Android.printHtmlToPdf === 'function'){
+                try{ window.Android.printHtmlToPdf(html,filename); return; }catch(e){ console.warn('Android PDF bridge failed:',e); }
+            }
+            // قرارداد جایگزین در صورت پیاده‌سازی پل در نسخه APK.
+            if(window.Android && typeof window.Android.savePdfFromHtml === 'function'){
+                try{ window.Android.savePdfFromHtml(html,filename); return; }catch(e){ console.warn('Android PDF save bridge failed:',e); }
+            }
+            // Chrome fallback
+            const w=window.open('','_blank');
+            if(!w){ alert('لطفاً اجازه باز شدن پنجره جدید را بدهید.'); return; }
+            w.document.write(html); w.document.close(); setTimeout(()=>w.print(),400);
+        }
+
+        document.addEventListener('click',function(event){
+            closeSettingsMenu();
+            const bar=document.querySelector('.action-bar-container');
+            if(bar && !bar.contains(event.target) && !event.target.closest('#searchModal')){
+                document.getElementById('addTypeSubGroup')?.classList.remove('is-active');
+                document.getElementById('searchModal')?.classList.remove('is-active');
+            }
+            // هر کلیک خارج از خود سطر باز، هم زیرمنوی ویرایش/حذف و هم حالت باز سطر را می‌بندد.
+            const clickedCard = event.target.closest('.open-card');
+            if(!clickedCard){
+                let changed = false;
+                if (openCardIds.size > 0) { openCardIds.clear(); changed = true; }
+                if (Object.keys(activeSubcardsMap).length > 0) { activeSubcardsMap = {}; changed = true; }
+                if (Object.keys(activeActionsMap).length > 0) { activeActionsMap = {}; changed = true; }
+                document.querySelectorAll('.actions-sub-group').forEach(el=>el.remove());
+                document.querySelectorAll('.card-actions-row>.edit-btn').forEach(btn=>{btn.innerHTML='✏️ ویرایش ▼';});
+                // بازنمایی لیست برای حذف هر وضعیت باز باقی‌مانده، تا در باز شدن بعدی کاملاً تمیز باشد
+                if (changed && typeof applyFilters === 'function') applyFilters();
+            }
+        });
+
+        // ذخیره خودکار هنگام ترک صفحه، مخفی شدن برنامه یا بستن مرورگر
+        window.addEventListener('beforeunload',function(){ try{ saveData(); }catch(e){} });
+        document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'){ try{ saveData(); }catch(e){} }});
+
+        // کنترل Back مرورگر/اندروید در نسخه HTML
+        try { saveData(true); } catch(e) {}
+        history.pushState({financeApp:true},'',location.href);
+        window.addEventListener('popstate',function(){
+            const add=document.getElementById('addTypeSubGroup');
+            const search=document.getElementById('searchModal');
+            const settings=document.getElementById('settingsMenu');
+            const openModal=document.querySelector('.modal-overlay[style*="display: flex"]');
+            if(add?.classList.contains('is-active')){ add.classList.remove('is-active'); history.pushState({financeApp:true},'',location.href); return; }
+            if(search?.classList.contains('is-active')){ search.classList.remove('is-active'); history.pushState({financeApp:true},'',location.href); return; }
+            if(settings?.classList.contains('is-open')){ settings.classList.remove('is-open'); history.pushState({financeApp:true},'',location.href); return; }
+            if(openModal){ openModal.style.display='none'; history.pushState({financeApp:true},'',location.href); return; }
+            const ok=confirm('آیا مطمئن هستید می‌خواهید از برنامه خارج شوید؟\nاطلاعات ابتدا ذخیره می‌شوند.');
+            if(ok){
+                saveData();
+                setTimeout(()=>{
+                    try{
+                        if(window.Android && typeof window.Android.closeApp === 'function'){ window.Android.closeApp(); return; }
+                        window.close();
+                    }catch(e){}
+                },50);
+            }
+            else history.pushState({financeApp:true},'',location.href);
+        });
+
+        document.getElementById('unlockPin')?.addEventListener('keydown',function(e){if(e.key==='Enter')unlockApp();});
+
+        // راه‌اندازی مقاوم در برابر جابه‌جایی بین صفحات/تب‌ها و بازگشت به فایل
+        let appInitialized = false;
+
+        function initializeAppView() {
+            try {
+                // اگر مرورگر صفحه را از حافظه برگرداند، DOM را دوباره با داده‌های ذخیره‌شده هماهنگ می‌کنیم.
+                populateRecipientDropdowns();
+                applyFilters();
+
+                const savedPin = localStorage.getItem('financeAppPin');
+                const lockModal = document.getElementById('lockModal');
+                if (savedPin && lockModal && lockModal.style.display !== 'flex') {
+                    lockModal.style.display = 'flex';
+                }
+            } catch (err) {
+                console.error('خطا در بازگردانی صفحه:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){ try{ requestPersistentStorage(); }catch(e){} }, { once: true });
+        document.addEventListener('DOMContentLoaded', initializeAppView, { once: true });
+
+        // وقتی کاربر از صفحه/تب دیگری برمی‌گردد.
+        window.addEventListener('pageshow', function () {
+            setTimeout(initializeAppView, 0);
+        });
+
+        // در بعضی نسخه‌های Chrome/Android هنگام برگشت، visibilitychange زودتر از pageshow رخ می‌دهد.
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                setTimeout(initializeAppView, 0);
+            }
+        });
+
+        // اگر صفحه از bfcache برگشت، state قبلی حفظ می‌شود و دوباره رندر می‌گردد.
+        window.addEventListener('focus', function () {
+            setTimeout(initializeAppView, 0);
+        });
+    </script>
+
+
+
+
+<script id="v29-apk-compatibility">
+(function(){
+  // نسخه APK: این پل‌ها در مرحله ۲ توسط Android WebView پیاده‌سازی می‌شوند.
+  // در Chrome نبودن پل‌ها مشکلی ایجاد نمی‌کند و fallbackهای مرورگر فعال می‌مانند.
+  function safeSave(){ try{ if(typeof saveData==='function') saveData(true); }catch(e){} }
+  window.addEventListener('pagehide',safeSave,{capture:true});
+  window.addEventListener('beforeunload',safeSave,{capture:true});
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') safeSave(); },{capture:true});
+  document.addEventListener('DOMContentLoaded',function(){
+    try{ if(typeof requestPersistentStorage==='function') requestPersistentStorage(); }catch(e){}
+    // ذخیره دوره‌ای؛ از localStorage اضطراری + IndexedDB استفاده می‌کند.
+    setInterval(safeSave,10000);
+  },{once:true});
+})();
+</script>
+<script id="v29-safe-error-handler">
+window.addEventListener('error',function(){try{if(typeof saveData==='function')saveData(true);}catch(e){}});
+window.addEventListener('unhandledrejection',function(){try{if(typeof saveData==='function')saveData(true);}catch(e){}});
+</script>
+</body>
+</html>
