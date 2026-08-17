@@ -1222,7 +1222,7 @@ html, body {
                 <button class="search-toggle-btn" onclick="toggleSearchPanel()">🔍 جستجوی تراکنش</button>
                 <div class="search-dropdown" id="searchModal">
                     <div class="search-dropdown-row">
-                        <input type="text" id="textSearchInput" class="search-text-only" placeholder="" autocomplete="off" spellcheck="false" aria-label="جستجوی تراکنش">
+                        <input type="text" id="textSearchInput" class="search-text-only" placeholder="" autocomplete="off" spellcheck="false" aria-label="جستجوی تراکنش" oninput="applyFilters()">
                         <button type="button" id="recipientSearchButton" class="recipient-search-button" onclick="toggleRecipientSearchList(event)">اسامی</button>
                     </div>
                     <div id="recipientSearchList" class="recipient-search-list"></div>
@@ -2203,6 +2203,16 @@ html, body {
             const list=document.getElementById('recipientSearchList');
             if(!list) return;
             list.innerHTML='';
+            const allBtn=document.createElement('button');
+            allBtn.type='button'; allBtn.className='recipient-option'; allBtn.textContent='🔄 نمایش همه (حذف فیلتر اسم)';
+            allBtn.onclick=(e)=>{
+                e.stopPropagation();
+                const h=document.getElementById('recipientListSelect');
+                if(h) h.value='';
+                list.classList.remove('is-active');
+                applyFilters();
+            };
+            list.appendChild(allBtn);
             [...new Set(transactions.map(t=>String(t.recipient||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fa')).forEach(name=>{
                 const b=document.createElement('button');
                 b.type='button'; b.className='recipient-option'; b.textContent=name;
